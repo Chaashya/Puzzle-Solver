@@ -117,18 +117,18 @@ class SokobanPuzzle(search.Problem):
 
 def check_elem_action_seq(warehouse, action_seq):
     '''
-
+    
     Determine if the sequence of actions listed in 'action_seq' is legal or not.
-
+    
     Important notes:
       - a legal sequence of actions does not necessarily solve the puzzle.
       - an action is legal even if it pushes a box onto a taboo cell.
-
+        
     @param warehouse: a valid Warehouse object
 
     @param action_seq: a sequence of legal actions.
            For example, ['Left', 'Down', Down','Right', 'Up', 'Down']
-
+           
     @return
         The string 'Impossible', if one of the action was not successul.
            For example, if the agent tries to push two boxes at the same time,
@@ -138,10 +138,81 @@ def check_elem_action_seq(warehouse, action_seq):
                the sequence of actions.  This must be the same string as the
                string returned by the method  Warehouse.__str__()
     '''
-
+    
     ##         "INSERT YOUR CODE HERE"
 
-    raise NotImplementedError()
+    failed = 'Impossible'
+    x, y = warehouse.worker
+    walls = warehouse.walls
+    boxes = warehouse.boxes
+
+    print()
+    print("from function:")
+    print("Player start x and y:", x, y)
+    print("Box locations: ", boxes)
+    print("Wall co-ords:")
+    print(walls)
+    print(action_seq)
+    print(warehouse)
+    
+    print()
+    
+    # iterate of each action from the action sequence
+    for action in action_seq:
+        if(action == 'Left'):
+            x -= 1
+            print(action)
+            print(x, y)
+            # after the move check if the player is in a wall position
+            if(x, y) in walls:
+                print("This test is", failed)
+                return failed
+#            else: 
+#                warehouse.worker = x, y
+#                print(warehouse)
+
+        elif(action == 'Right'):         
+            x += 1
+            print(action)
+            print(x, y)
+            # after the move check if the player is in a wall position
+            if(x, y) in walls:
+                print("This test is", failed)
+                return failed
+#            else: 
+#                warehouse.worker = x, y
+#                print(warehouse)
+
+        elif(action == 'Up'):
+            y -= 1
+            print(action)
+            print(x, y)
+            # after the move check if the player is in a wall position
+            if(x, y) in walls:
+                print("This test is", failed)
+                return failed
+#            else: 
+#                warehouse.worker = x, y
+#                print(warehouse)
+
+        elif(action == 'Down'):
+            y += 1
+            print(action)
+            print(x, y)
+            # after the move check if the player is in a wall position
+            if(x, y) in walls:
+                print("This test is", failed)
+                return failed
+            elif(x, y in boxes):
+                print("will push a box") 
+#                warehouse.worker = x, y
+#                print(warehouse)
+    # move the worker to the new postion
+    warehouse.worker = x, y
+    print(warehouse)
+
+    return str(warehouse)
+
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
