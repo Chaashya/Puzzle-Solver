@@ -263,7 +263,7 @@ def check_elem_action_seq(warehouse, action_seq):
             # check if the next postion contains a box
             if(x, y) in boxes:
                 # check if position next to the box contains another box or wall
-                if (x-1, y) in boxes or (x-1, y) in walls:
+                if (x-1, y) in boxes or (x+1, y) in walls:
                     print("This test is", failed)
                     return failed
 
@@ -278,7 +278,7 @@ def check_elem_action_seq(warehouse, action_seq):
             # check if the next postion contains a box
             if(x, y) in boxes:
                 # check if position next to the box contains another box or wall
-                if (x-1, y) in boxes or (x-1, y) in walls:
+                if (x-1, y) in boxes or (x, y-1) in walls:
                     print("This test is", failed)
                     return failed
 
@@ -293,7 +293,7 @@ def check_elem_action_seq(warehouse, action_seq):
             # check if the next postion contains a box
             if(x, y) in boxes:
                 # check if position next to the box contains another box or wall
-                if (x-1, y) in boxes or (x-1, y) in walls:
+                if (x-1, y) in boxes or (x, y+1) in walls:
                     print("This test is", failed)
                     return failed
     
