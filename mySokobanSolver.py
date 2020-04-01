@@ -329,9 +329,51 @@ def can_go_there(warehouse, dst):
       False otherwise
     '''
 
-    # "INSERT YOUR CODE HERE"
+    warehouse_squares = str(warehouse).split('\n')
 
-    raise NotImplementedError()
+    index = 0
+    for strings in warehouse_squares:
+        warehouse_squares[index] = list(strings)
+        index += 1
+
+    x_size = len(warehouse_squares[0])
+    y_size = len(warehouse_squares)
+
+    workerx = warehouse.worker[0]
+    workery = warehouse.worker[1]
+
+    dstx = dst[0]
+    dsty = dst[1]
+    
+    for box in warehouse.boxes:
+        boxx = box[0]
+        boxy = box[1]
+        
+        # box is on goal - worker cannot move here
+        if box == dst: 
+            return False 
+        
+        # If box y location is within worker y and goal y 
+        if boxy in range(workery, dsty) :
+            # If box is in same row - will collide 
+            if boxx == workerx:
+                return False 
+        
+        # If box x location is within worker x and goal x 
+        if boxx in range(workerx, dstx) :
+            # If box is in same column - will collide 
+            if boxy == workery: 
+                return False     
+        
+        # If goal is out of the x bounds of the warehouse 
+        if dstx <= 0 or dstx > x_size:
+            return False
+       
+        # If goal is out of the y bounds of the warehouse 
+        if dsty <= 0 or dsty > y_size:
+            return False
+    
+    return True
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
