@@ -234,56 +234,69 @@ def check_elem_action_seq(warehouse, action_seq):
 
     print()
 
-    # iterate of each action from the action sequence
+    # iterate through each action from the action sequence
     for action in action_seq:
         if(action == 'Left'):
             x -= 1
             print(action)
             print(x, y)
-            # after the move check if the player is in a wall position
+            # check if the action will put the player into a wall
             if(x, y) in walls:
                 print("This test is", failed)
                 return failed
-#            else:
-#                warehouse.worker = x, y
-#                print(warehouse)
+            # check if the next postion contains a box
+            if(x, y) in boxes:
+                # check if position next to the box contains another box or wall
+                if (x-1, y) in boxes or (x-1, y) in walls:
+                    print("This test is", failed)
+                    return failed
+
 
         elif(action == 'Right'):
             x += 1
             print(action)
             print(x, y)
-            # after the move check if the player is in a wall position
+            # check if the action will put the player into a wall
             if(x, y) in walls:
                 print("This test is", failed)
                 return failed
-#            else:
-#                warehouse.worker = x, y
-#                print(warehouse)
+            # check if the next postion contains a box
+            if(x, y) in boxes:
+                # check if position next to the box contains another box or wall
+                if (x-1, y) in boxes or (x-1, y) in walls:
+                    print("This test is", failed)
+                    return failed
 
         elif(action == 'Up'):
             y -= 1
             print(action)
             print(x, y)
-            # after the move check if the player is in a wall position
+            # check if the action will put the player into a wall
             if(x, y) in walls:
                 print("This test is", failed)
                 return failed
-#            else:
-#                warehouse.worker = x, y
-#                print(warehouse)
+            # check if the next postion contains a box
+            if(x, y) in boxes:
+                # check if position next to the box contains another box or wall
+                if (x-1, y) in boxes or (x-1, y) in walls:
+                    print("This test is", failed)
+                    return failed
 
         elif(action == 'Down'):
             y += 1
             print(action)
             print(x, y)
-            # after the move check if the player is in a wall position
+            # check if the action will put the player into a wall
             if(x, y) in walls:
                 print("This test is", failed)
                 return failed
-            elif(x, y in boxes):
-                print("will push a box")
-#                warehouse.worker = x, y
-#                print(warehouse)
+            # check if the next postion contains a box
+            if(x, y) in boxes:
+                # check if position next to the box contains another box or wall
+                if (x-1, y) in boxes or (x-1, y) in walls:
+                    print("This test is", failed)
+                    return failed
+    
     # move the worker to the new postion
     warehouse.worker = x, y
     print(warehouse)
