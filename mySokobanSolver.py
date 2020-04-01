@@ -25,8 +25,7 @@ def my_team():
     Return the list of the team members of this assignment submission as a list
     of triplet of the form (student_number, first_name, last_name)
     '''
-#    return [ (1234567, 'Ada', 'Lovelace'), (1234568, 'Grace', 'Hopper'), (1234569, 'Eva', 'Tardos') ]
-    raise NotImplementedError()
+    return [ (1234567, 'Chaashya', 'Fernando'), (1234568, 'Joseph', 'Hopper'), ('n9922121', 'Riley', 'Albiston') ]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -115,9 +114,7 @@ def taboo_cells(warehouse):
     for y in range(1, len(warehouse_array) - 1):
         for x in range(1, len(warehouse_array[0]) - 1):
             # Find taboo cell
-            if warehouse_array[y][x] == taboo_cell \
-                # Check it is a corner
-                    and corner_check(warehouse_array, x, y):
+            if warehouse_array[y][x] == taboo_cell and corner_check(warehouse_array, x, y):
                 row = warehouse_array[y][x + 1:]
                 col = [row[x] for row in warehouse_array[y + 1:][:]]
                 # Fill in taboo L - R
@@ -220,8 +217,6 @@ def check_elem_action_seq(warehouse, action_seq):
                the sequence of actions.  This must be the same string as the
                string returned by the method  Warehouse.__str__()
     '''
-
-    # "INSERT YOUR CODE HERE"
 
     failed = 'Impossible'
     x, y = warehouse.worker
