@@ -263,7 +263,7 @@ def check_elem_action_seq(warehouse, action_seq):
             # check if the next postion contains a box
             if(x, y) in boxes:
                 # check if position next to the box contains another box or wall
-                if (x-1, y) in boxes or (x+1, y) in walls:
+                if (x+1, y) in boxes or (x+1, y) in walls:
                     print("This test is", failed)
                     return failed
 
@@ -273,13 +273,13 @@ def check_elem_action_seq(warehouse, action_seq):
             print(x, y)
             # check if the action will put the player into a wall
             if(x, y) in walls:
-                print("This test is", failed)
+                print("Failed because the player moved into a wall")
                 return failed
             # check if the next postion contains a box
             if(x, y) in boxes:
                 # check if position next to the box contains another box or wall
-                if (x-1, y) in boxes or (x, y-1) in walls:
-                    print("This test is", failed)
+                if (x, y-1) in boxes or (x, y-1) in walls:
+                    print("Failed because player can't push 2 boxes at once, or tried to push a box into a wall.")
                     return failed
 
         elif(action == 'Down'):
@@ -293,7 +293,7 @@ def check_elem_action_seq(warehouse, action_seq):
             # check if the next postion contains a box
             if(x, y) in boxes:
                 # check if position next to the box contains another box or wall
-                if (x-1, y) in boxes or (x, y+1) in walls:
+                if (x, y+1) in boxes or (x, y+1) in walls:
                     print("This test is", failed)
                     return failed
     
