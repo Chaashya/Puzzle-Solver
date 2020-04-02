@@ -223,17 +223,6 @@ def check_elem_action_seq(warehouse, action_seq):
     walls = warehouse.walls
     boxes = warehouse.boxes
 
-    print()
-    print("from function:")
-    print("Player start x and y:", x, y)
-    print("Box locations: ", boxes)
-    print("Wall co-ords:")
-    print(walls)
-    print(action_seq)
-    print(warehouse)
-
-    print()
-
     # iterate through each action from the action sequence
     for action in action_seq:
         if(action == 'Left'):
@@ -242,13 +231,13 @@ def check_elem_action_seq(warehouse, action_seq):
             print(x, y)
             # check if the action will put the player into a wall
             if(x, y) in walls:
-                print("This test is", failed)
+                print("Failed because the player moved into a wall")
                 return failed
             # check if the next postion contains a box
             if(x, y) in boxes:
                 # check if position next to the box contains another box or wall
                 if (x-1, y) in boxes or (x-1, y) in walls:
-                    print("This test is", failed)
+                   print("Failed because player can't push 2 boxes at once, or tried to push a box into a wall.")
                     return failed
 
 
@@ -258,13 +247,13 @@ def check_elem_action_seq(warehouse, action_seq):
             print(x, y)
             # check if the action will put the player into a wall
             if(x, y) in walls:
-                print("This test is", failed)
+                print("Failed because the player moved into a wall")
                 return failed
             # check if the next postion contains a box
             if(x, y) in boxes:
                 # check if position next to the box contains another box or wall
                 if (x+1, y) in boxes or (x+1, y) in walls:
-                    print("This test is", failed)
+                    print("Failed because player can't push 2 boxes at once, or tried to push a box into a wall.")
                     return failed
 
         elif(action == 'Up'):
@@ -288,18 +277,18 @@ def check_elem_action_seq(warehouse, action_seq):
             print(x, y)
             # check if the action will put the player into a wall
             if(x, y) in walls:
-                print("This test is", failed)
+                print("Failed because the player moved into a wall")
                 return failed
             # check if the next postion contains a box
             if(x, y) in boxes:
                 # check if position next to the box contains another box or wall
                 if (x, y+1) in boxes or (x, y+1) in walls:
-                    print("This test is", failed)
+                    print("Failed because player can't push 2 boxes at once, or tried to push a box into a wall.")
                     return failed
     
     # move the worker to the new postion
     warehouse.worker = x, y
-    print(warehouse)
+    print(str(warehouse))
 
     return str(warehouse)
 
@@ -405,9 +394,63 @@ def solve_sokoban_macro(warehouse):
         If the puzzle is already in a goal state, simply return []
     '''
 
-    # "INSERT YOUR CODE HERE"
+    '''
+    Test puzzle layout from sanity_check.py
 
-    raise NotImplementedError()
+     0123456  
+    0#######
+    1#@ $ .#
+    2#######
+
+    possible moves by the box: ['Left', 'Right']
+    '''
+
+    failed = 'Impossible'
+    x, y = warehouse.worker
+    walls = warehouse.walls
+    boxes = warehouse.boxes
+    targets = warehouse.targets
+
+    print("Worker x, y:",x, y)
+    print("Boxes x, y:", boxes)
+    print("Targets:", targets)
+    print("Walls:", walls)
+
+    rows = warehouse.nrows
+    cols = warehouse.ncols
+    print("Rows:", rows)
+    print("Cols:", cols)
+
+
+    wh_str = str(warehouse)
+    goal = wh_str.replace("$", " ").replace(".", "*")
+
+    print("\nWarehouse string:")
+    print(wh_str)
+    print("\nGoal state:")
+    print(goal)
+
+
+    '''
+    # Test distance for boxes to targets (heuristic, manhattan distance?!?)
+
+    for this test manhattan distance == 2 (1 box and 1 target)
+
+    1. Test possible moves of the box(s)
+
+    2. Test if the worker can move to the OPPOSITE side of the possible box moves
+
+    3. Choose next move
+
+    if (M == None):
+        puzzle Impossible
+
+    if (box == goal):
+        puzzle solved
+    
+    '''
+
+    return None
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
