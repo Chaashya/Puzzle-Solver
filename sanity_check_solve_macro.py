@@ -23,31 +23,15 @@ def test_solve_sokoban_macro():
     '''
     # Some basic testing of the method of extracting location data from the warehouse
     '''
-
-    print("From test function:")
-    puzzle_t2 ='#######\n#@ $ .#\n#######'
+    #puzzle_t2 ='#######\n#@ $ .#\n#######'
     wh = Warehouse()    
-    wh.from_string(puzzle_t2)
-    print("wh.from_string()")
-    print(wh)
-    print("extract_location()")
-    lines = ['#######', '#@ $ .#', '#######']
-    #wh.extract_locations(puzzle_t2.split(sep='\n'))
-    wh.extract_locations(lines)
-    print("Worker:", wh.worker)
-    print("Boxe 1 col:", wh.boxes[0][0])
-    print("Boxe 1 row:", wh.boxes[0][1])
-    print("Targets:", wh.targets)
-    print(wh)
-    print("End test function.\n")
-
-
-    puzzle_t2 ='#######\n#@ $ .#\n#######'
-    wh = Warehouse()    
-    wh.from_string(puzzle_t2)
-    # first test
+    #wh.from_string(puzzle_t2)
+    wh.load_warehouse("./warehouses/warehouse_47.txt")
     answer=solve_sokoban_macro(wh)
-    expected_answer = [((1, 3), 'Right'), ((1, 4), 'Right')]
+
+    
+    #expected_answer = [((1, 3), 'Right'), ((1, 4), 'Right')]
+    expected_answer = [((4, 3), 'Right'), ((4, 4), 'Right')]
     fcn = test_solve_sokoban_macro
     print('<<  First test of {} >>'.format(fcn.__name__))
     if answer==expected_answer:
