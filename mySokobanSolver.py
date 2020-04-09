@@ -529,8 +529,8 @@ def solve_sokoban_macro(warehouse):
     6##### #####
     '''
 
-    SB = SokobanPuzzle(warehouse)
-
+    
+    '''
     failed = 'Impossible'
     x, y = warehouse.worker
     walls = warehouse.walls
@@ -546,13 +546,45 @@ def solve_sokoban_macro(warehouse):
     print("Rows:", rows)
     print("Cols:", cols)
     print()
+    '''
 
-    M = search.astar_graph_search(SB)
+    def h(n):
+        '''
+        Heurtistic - Uses Manhattan Distance
+        To make the heuristic admissible it should be optimisitc. It should
+        underestimate the cost from the current state to the goal state.
 
+        Possible option: Use the sum of the manhattan distance of each box 
+        to it's nearest target.
+
+        returns a int value which is an estimate of the puzzles distance to
+        the goal state.
+        '''
+        print("\nFrom heuristic function:")
+
+        state = n.state
+        print(state)
+        
+        w = warehouse.worker
+        b = warehouse.boxes
+        t = warehouse.targets[0]
+        print(w)
+        print(b)
+        print(t)
+
+        heuristic = abs(w[0]-t[0]) + abs(w[1]-t[1])
+        print(heuristic)
+
+        return heuristic
+
+    M = search.astar_graph_search(SokobanPuzzle(warehouse), h)
+
+    '''
+    SB = SokobanPuzzle(warehouse)
     print("\nInital set of possible actions:")
     print(SB.actions(SB.initial))
+    '''
 
-    
     p = M.path()
     print('\nPath actions:')
     p_actions = [e.action for e in p]
@@ -560,7 +592,6 @@ def solve_sokoban_macro(warehouse):
     print('\nPath states:')
     p_state = [e.state for e in p]
     print(p_state)
-
     
     worker_loc = []
     for s in p_state:
@@ -582,11 +613,6 @@ def solve_sokoban_macro(warehouse):
     print('\nWorker location and action zipped together and the starting state removed:')
     del z[0]
     print(z)
-
-
-    #SB.print_solution(M)
-    
-
 
     '''
     # Test distance for boxes to targets (heuristic, manhattan distance?!?)
