@@ -350,6 +350,32 @@ class SokobanPuzzle(search.Problem):
         return wall_check_coords
 
 
+opp_states = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+
+class PathFinder(search.Problem):
+    def __init__(self, initial, warehouse, goal=None):
+        self.initial = initial
+        self.goal = goal
+        self.warehouse = warehouse
+
+    def value(self, state):
+        # cost = 1 for a single movement
+        return 1
+
+    def result(self, state, action):
+        # result = old state with action applied
+        new_state = state[0] + action[0], state[1] + action[1]
+        return new_state
+
+    def actions(self, state):
+        for opp in opp_states:
+            new_state = state[0] + opp[0], state[1] + opp[1]
+            # check loc != wall or box
+            if new_state not in self.warehouse.boxes and new_state not in self.warehouse.walls:
+                yield opp
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -471,6 +497,8 @@ def solve_sokoban_elem(warehouse):
     '''
 
     # Load macro actions to execute from solve_sokoban_macro
+    # Check if solved
+    # Check if impossible
 
     raise NotImplementedError()
 
@@ -492,6 +520,11 @@ def can_go_there(warehouse, dst):
         return math.sqrt(((state[1] - dst[1]) ** 2) + ((state[0] - dst[0]) ** 2))
 
     dst = (dst[1], dst[0])
+
+    node = astar_graph_search(PathFinder(
+        warehouse.worker, warehouse, dst), heuristic)
+
+    return node is not None
 
     # warehouse_squares = str(warehouse).split('\n')
 
