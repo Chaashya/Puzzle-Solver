@@ -564,6 +564,7 @@ def solve_sokoban_macro(warehouse):
 
         state = n.state
         print(state)
+        warehouse.extract_locations(state.split('\n'))
         
         w = warehouse.worker
         b = warehouse.boxes
@@ -573,7 +574,7 @@ def solve_sokoban_macro(warehouse):
         print(t)
 
         heuristic = abs(w[0]-t[0]) + abs(w[1]-t[1])
-        print(heuristic)
+        print("heuristic: ", heuristic)
 
         return heuristic
 
