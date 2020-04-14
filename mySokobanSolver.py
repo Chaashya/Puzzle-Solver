@@ -29,7 +29,7 @@ def my_team():
     Return the list of the team members of this assignment submission as a list
     of triplet of the form (student_number, first_name, last_name)
     '''
-    return [('n10122702', 'Chaashya', 'Fernando'), (1234568, 'Joseph', 'Hopper'), ('n9922121', 'Riley', 'Albiston')]
+    return [('n10122702', 'Chaashya', 'Fernando'), ('n9934847', 'Joseph', 'Modolo'), ('n9922121', 'Riley', 'Albiston')]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -188,11 +188,17 @@ class SokobanPuzzle(search.Problem):
     #     complete this class. For example, a 'result' function is needed
     #     to satisfy the interface of 'search.Problem'.
 
-    def __init__(self, warehouse):
+    def __init__(self, warehouse,allow_taboo_push = False):
 
         self.warehouse = warehouse
         self.initial = warehouse.__str__()
-        self.goal = self.convert_state_to_goal(warehouse)
+        self.goal_wh = warehouse.copy(boxes=warehouse.targets)
+        self.goal = self.convert_state_to_mutiple_goal(warehouse)
+        self.allow_taboo_push = allow_taboo_push
+        self.taboo_warehouse = taboo_cells(self.warehouse)
+        self.taboo_coords = list(sokoban.find_2D_iterator(self.taboo_warehouse,"X"))
+        
+
 
     def actions(self, state):
         """
@@ -203,32 +209,56 @@ class SokobanPuzzle(search.Problem):
         what type of list of actions is to be returned.
         """
         self.warehouse.from_string(state)
+        
         L = []
         x, y = self.warehouse.worker
         if ((x, y-1)) not in self.warehouse.walls:
             if ((x, y-1)) not in self.warehouse.boxes:
                 L.append('Up')
             if ((x, y-1)) in self.warehouse.boxes:
-                if ((x, y-2)) not in self.warehouse.boxes and ((x, y-2)) not in self.warehouse.walls:
-                    L.append('Up')
+                if self.allow_taboo_push:        
+                    if ((x, y-2)) not in self.warehouse.boxes and ((x, y-2)) not in self.warehouse.walls:
+                        L.append('Up')
+                if self.allow_taboo_push is False:
+                    if ((x, y-2)) not in self.taboo_coords:
+                        if ((x, y-2)) not in self.warehouse.boxes and ((x, y-2)) not in self.warehouse.walls:
+                            L.append('Up')
+                            
         if ((x, y+1)) not in self.warehouse.walls:
             if ((x, y+1)) not in self.warehouse.boxes:
                 L.append('Down')
             if ((x, y+1)) in self.warehouse.boxes:
-                if ((x, y+2)) not in self.warehouse.boxes and ((x, y+2)) not in self.warehouse.walls:
-                    L.append('Down')
+                if self.allow_taboo_push:                   
+                    if ((x, y+2)) not in self.warehouse.boxes and ((x, y+2)) not in self.warehouse.walls:
+                        L.append('Down')
+                if self.allow_taboo_push is False:
+                    if ((x, y+2)) not in self.taboo_coords:
+                        if ((x, y+2)) not in self.warehouse.boxes and ((x, y+2)) not in self.warehouse.walls:
+                            L.append('Down')
+                            
         if ((x-1, y)) not in self.warehouse.walls:
             if ((x-1, y)) not in self.warehouse.boxes:
                 L.append('Left')
             if ((x-1, y)) in self.warehouse.boxes:
-                if ((x-2, y)) not in self.warehouse.boxes and ((x-2, y)) not in self.warehouse.walls:
-                    L.append('Left')
+                if self.allow_taboo_push:
+                    if ((x-2, y)) not in self.warehouse.boxes and ((x-2, y)) not in self.warehouse.walls:
+                        L.append('Left')
+                if self.allow_taboo_push is False:
+                    if ((x-2, y)) not in self.taboo_coords:
+                        if ((x-2, y)) not in self.warehouse.boxes and ((x-2, y)) not in self.warehouse.walls:
+                            L.append('Left')
+                    
         if ((x+1, y)) not in self.warehouse.walls:
             if ((x+1, y)) not in self.warehouse.boxes:
                 L.append('Right')
             if ((x+1, y)) in self.warehouse.boxes:
-                if ((x+2, y)) not in self.warehouse.boxes and ((x+2, y)) not in self.warehouse.walls:
-                    L.append('Right')
+                if self.allow_taboo_push:
+                    if ((x+2, y)) not in self.warehouse.boxes and ((x+2, y)) not in self.warehouse.walls:
+                        L.append('Right')
+                if self.allow_taboo_push is False:
+                    if ((x+2, y)) not in self.taboo_coords:
+                        if ((x+2, y)) not in self.warehouse.boxes and ((x+2, y)) not in self.warehouse.walls:
+                            L.append('Right')
         return L
 
     def result(self, state, action):
@@ -286,18 +316,21 @@ class SokobanPuzzle(search.Problem):
         print(path[0].state)
         print("to the goal state")
         print(path[-1].state)
-        print("\nBelow is the sequence of moves\n")
-        for node in path:
-            if node.action is not None:
-                print(format(node.action))
-            # COMMENT OUT THIS LINE TO MAKE IT EASIER TO SEE STEPS TAKEN TO GOAL
-            print(node.state)
+#        print("\nBelow is the sequence of moves\n")
+#        for node in path:
+#            if node.action is not None:
+#                print(format(node.action))
+#            # COMMENT OUT THIS LINE TO MAKE IT EASIER TO SEE STEPS TAKEN TO GOAL
+#            print(node.state)
 
     def goal_test(self, state):
         """Return True if the state is a goal. The default method compares the
         state to self.goal, as specified in the constructor. Override this
         method if checking against a single self.goal is not enough."""
-        return state == self.goal
+#        goals_list = self.convert_state_to_mutiple_goal(self.goal_wh)
+        
+        if state in self.goal:
+            return True
 
     def path_cost(self, c, state1, action, state2):
         """Return the cost of a solution path that arrives at state2 from
@@ -325,21 +358,56 @@ class SokobanPuzzle(search.Problem):
 #        print(state)
 
 #        w = self.warehouse.worker
-#        b = self.warehouse.boxes
-#        t = self.warehouse.targets[0]
+        b = self.warehouse.boxes
+        t = self.warehouse.targets
 #        print('worker:',w)
 #        print('boxes:',b)
 #        print('targets:',t)
-
+        
+        
+        h = []
+        for i in range(0,len(t)):
+            h.append(abs(b[i][0] - t[i][0]) + abs(b[i][1] - t[i][1]))
+#        heuristic = 
 #        heuristic = abs(w[0]-t[0]) + abs(w[1]-t[1])
-        heuristic = 0
+        heuristic = sum(h)
 #        print('h cost:',heuristic)
 
         return heuristic
+#
+#    def convert_state_to_goal(self, warehouse):
+#        goal_wh = warehouse.copy(boxes=warehouse.targets)
+#        return goal_wh.__str__()
+#    
+    
+    def convert_state_to_mutiple_goal(self, warehouse):
+        list_of_goal_possible_states = []
+        list_of_goal_worker_coords = []
+        list_of_states = []
+        
+        t = self.goal_wh.targets
+        for i in range(0,len(t)):
+#            print(t)
+            list_of_goal_worker_coords.append((t[i][0],t[i][1]-1))
+            list_of_goal_worker_coords.append((t[i][0],t[i][1]+1))
+            list_of_goal_worker_coords.append((t[i][0]-1,t[i][1]))
+            list_of_goal_worker_coords.append((t[i][0]+1,t[i][1]))
+        for i in range(0,len(list_of_goal_worker_coords)):
+            if list_of_goal_worker_coords[i] not in self.warehouse.walls and list_of_goal_worker_coords[i] not in self.warehouse.targets:
+                list_of_goal_possible_states.append(list_of_goal_worker_coords[i]) 
 
-    def convert_state_to_goal(self, warehouse):
-        goal_wh = warehouse.copy(boxes=warehouse.targets)
-        return goal_wh.__str__()
+        def removeDuplicates(lst): 
+            return list(set([i for i in lst]))  
+        
+        list_of_goal_possible_states = removeDuplicates(list_of_goal_possible_states)
+#        print('list of possible goal states',list_of_goal_possible_states)
+        for i in range(0,len(list_of_goal_possible_states)):
+            self.goal_wh.worker = list_of_goal_possible_states[i]
+            list_of_states.append(self.goal_wh.__str__())
+#            print(list_of_states[i])
+        return(list_of_states)
+            
+        
 
     def check_for_wall(self, state):
         worker_coords = list(state.worker)
@@ -770,18 +838,21 @@ if __name__ == '__main__':
 #    test_string = "#############\n#           #\n#           #\n#           #\n#           #\n#    #.#    #\n#    #$#    #\n#    #@#    #\n#############"
 #    test_string = "##########\n#   .... #\n#        #\n#$       #\n#$       #\n#@$$     #\n##########"
     wh = sokoban.Warehouse()
-    wh.load_warehouse("./warehouses/warehouse_11.txt")
+    wh.load_warehouse("./warehouses/warehouse_81.txt")
 
 #    wh.from_string(test_string)
-    SB = SokobanPuzzle(wh)
+    SB = SokobanPuzzle(wh,allow_taboo_push=False)
 #    print('worker',wh.worker)
 #    print('walls',wh.walls)
 #    print('boxes',wh.boxes)
 
     print("Initial state:")
     print(SB.initial)
-    print("\nGoal state:")
-    print(SB.goal)
+    print("\nGoal states:")
+    for i in range(0,len(SB.goal)):
+        print(SB.goal[i])
+        
+#    
 #    print("\nInital set of possible actions:")
 #    print(SB.actions(SB.initial))
 
