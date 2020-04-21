@@ -17,7 +17,8 @@ import search
 import sokoban
 from search import astar_graph_search
 import math
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 import time
 
@@ -188,16 +189,19 @@ class SokobanPuzzle(search.Problem):
     #     complete this class. For example, a 'result' function is needed
     #     to satisfy the interface of 'search.Problem'.
 
-    def __init__(self, warehouse,allow_taboo_push = False):
+    def __init__(self, warehouse,allow_taboo_push = False, macro = False):
 
         self.warehouse = warehouse
         self.initial = warehouse.__str__()
         self.goal_wh = warehouse.copy(boxes=warehouse.targets)
         self.goal = self.convert_state_to_mutiple_goal(warehouse)
         self.allow_taboo_push = allow_taboo_push
+        self.macro = macro
         self.taboo_warehouse = taboo_cells(self.warehouse)
         self.taboo_coords = list(sokoban.find_2D_iterator(self.taboo_warehouse,"X"))
-        
+        self.lines = self.taboo_warehouse.__str__().split(sep='\n')
+        self.from_lines(self.lines)
+    
 
 
     def actions(self, state):
@@ -210,95 +214,210 @@ class SokobanPuzzle(search.Problem):
         """
         self.warehouse.from_string(state)
         
-        L = []
-        x, y = self.warehouse.worker
-        if ((x, y-1)) not in self.warehouse.walls:
-            if ((x, y-1)) not in self.warehouse.boxes:
-                L.append('Up')
-            if ((x, y-1)) in self.warehouse.boxes:
-                if self.allow_taboo_push:        
-                    if ((x, y-2)) not in self.warehouse.boxes and ((x, y-2)) not in self.warehouse.walls:
+#        def action_macro(direction):
+#            for i in range(0,len(self.warehouse.boxes)):
+#                box_loc = self.warehouse.boxes[i]
+#                if direction == 'Up':
+#                    if can_go_there_joseph(self.warehouse,(box_loc[0],box_loc[1]+1)) and (box_loc[0],box_loc[1]-1) not in self.warehouse.walls and (box_loc[0],box_loc[1]-1) not in self.warehouse.boxes and (box_loc[0],box_loc[1]-1) not in self.taboo_coords:
+#                        L.append('Up')
+#                        LL.append((box_loc[0],box_loc[1]+1))
+#                if direction == 'Down':   
+#                    if can_go_there_joseph(self.warehouse,(box_loc[0],box_loc[1]-1)) and (box_loc[0],box_loc[1]+1) not in self.warehouse.walls and (box_loc[0],box_loc[1]+1) not in self.warehouse.boxes and (box_loc[0],box_loc[1]+1) not in self.taboo_coords:
+#                        L.append('Down')
+#                        LL.append((box_loc[0],box_loc[1]-1))
+#                if direction == 'Left':  
+#                    if can_go_there_joseph(self.warehouse,(box_loc[0]+1,box_loc[1])) and (box_loc[0]-1,box_loc[1]) not in self.warehouse.walls and (box_loc[0]-1,box_loc[1]) not in self.warehouse.boxes and (box_loc[0]-1,box_loc[1]) not in self.taboo_coords:
+#                        L.append('Left')
+#                        LL.append((box_loc[0]+1,box_loc[1]))
+#                if direction == 'Right':   
+#                    if can_go_there_joseph(self.warehouse,(box_loc[0]-1,box_loc[1])) and (box_loc[0]+1,box_loc[1]) not in self.warehouse.walls and (box_loc[0]+1,box_loc[1]) not in self.warehouse.boxes and (box_loc[0]+1,box_loc[1]) not in self.taboo_coords:
+#                        L.append('Right')
+#                        LL.append((box_loc[0]-1,box_loc[1]))
+        def action_macro(direction):
+            for i in range(0,len(self.warehouse.boxes)):
+                box_loc = self.warehouse.boxes[i]
+                if direction == 'Up':
+                    if can_go_there_joseph(self.warehouse,(box_loc[0],box_loc[1]+1)) and (box_loc[0],box_loc[1]-1) not in self.warehouse.walls and (box_loc[0],box_loc[1]-1) not in self.warehouse.boxes and (box_loc[0],box_loc[1]-1) not in self.taboo_coords:
                         L.append('Up')
-                if self.allow_taboo_push is False:
-                    if ((x, y-2)) not in self.taboo_coords:
-                        if ((x, y-2)) not in self.warehouse.boxes and ((x, y-2)) not in self.warehouse.walls:
-                            L.append('Up')
-                            
-        if ((x, y+1)) not in self.warehouse.walls:
-            if ((x, y+1)) not in self.warehouse.boxes:
-                L.append('Down')
-            if ((x, y+1)) in self.warehouse.boxes:
-                if self.allow_taboo_push:                   
-                    if ((x, y+2)) not in self.warehouse.boxes and ((x, y+2)) not in self.warehouse.walls:
+                        LL.append(box_loc)
+                if direction == 'Down':   
+                    if can_go_there_joseph(self.warehouse,(box_loc[0],box_loc[1]-1)) and (box_loc[0],box_loc[1]+1) not in self.warehouse.walls and (box_loc[0],box_loc[1]+1) not in self.warehouse.boxes and (box_loc[0],box_loc[1]+1) not in self.taboo_coords:
                         L.append('Down')
-                if self.allow_taboo_push is False:
-                    if ((x, y+2)) not in self.taboo_coords:
-                        if ((x, y+2)) not in self.warehouse.boxes and ((x, y+2)) not in self.warehouse.walls:
-                            L.append('Down')
-                            
-        if ((x-1, y)) not in self.warehouse.walls:
-            if ((x-1, y)) not in self.warehouse.boxes:
-                L.append('Left')
-            if ((x-1, y)) in self.warehouse.boxes:
-                if self.allow_taboo_push:
-                    if ((x-2, y)) not in self.warehouse.boxes and ((x-2, y)) not in self.warehouse.walls:
+                        LL.append(box_loc)
+                if direction == 'Left':  
+                    if can_go_there_joseph(self.warehouse,(box_loc[0]+1,box_loc[1])) and (box_loc[0]-1,box_loc[1]) not in self.warehouse.walls and (box_loc[0]-1,box_loc[1]) not in self.warehouse.boxes and (box_loc[0]-1,box_loc[1]) not in self.taboo_coords:
                         L.append('Left')
-                if self.allow_taboo_push is False:
-                    if ((x-2, y)) not in self.taboo_coords:
-                        if ((x-2, y)) not in self.warehouse.boxes and ((x-2, y)) not in self.warehouse.walls:
-                            L.append('Left')
-                    
-        if ((x+1, y)) not in self.warehouse.walls:
-            if ((x+1, y)) not in self.warehouse.boxes:
-                L.append('Right')
-            if ((x+1, y)) in self.warehouse.boxes:
-                if self.allow_taboo_push:
-                    if ((x+2, y)) not in self.warehouse.boxes and ((x+2, y)) not in self.warehouse.walls:
+                        LL.append(box_loc)
+                if direction == 'Right':   
+                    if can_go_there_joseph(self.warehouse,(box_loc[0]-1,box_loc[1])) and (box_loc[0]+1,box_loc[1]) not in self.warehouse.walls and (box_loc[0]+1,box_loc[1]) not in self.warehouse.boxes and (box_loc[0]+1,box_loc[1]) not in self.taboo_coords:
                         L.append('Right')
-                if self.allow_taboo_push is False:
-                    if ((x+2, y)) not in self.taboo_coords:
-                        if ((x+2, y)) not in self.warehouse.boxes and ((x+2, y)) not in self.warehouse.walls:
-                            L.append('Right')
-        return L
+                        LL.append(box_loc)
+            
+        def action(direction):
+                    
+            if direction == 'Up':
+                x1 = x
+                x2 = x
+                y1 = y-1
+                y2 = y-2
+            if direction == 'Down':
+                x1 = x
+                x2 = x
+                y1 = y+1
+                y2 = y+2
+            if direction == 'Left':
+                x1 = x-1
+                x2 = x-2
+                y1 = y
+                y2 = y
+            if direction == 'Right':
+                x1 = x+1
+                x2 = x+2
+                y1 = y
+                y2 = y
+                        
+            if ((x1, y1)) not in self.warehouse.walls:
+                if ((x1, y1)) not in self.warehouse.boxes:
+                    L.append(direction)
+                if ((x1, y1)) in self.warehouse.boxes:
+                    if self.allow_taboo_push:        
+                        if ((x2, y2)) not in self.warehouse.boxes and ((x2, y2)) not in self.warehouse.walls:
+                            L.append(direction)
+                    if self.allow_taboo_push is False:
+                        if ((x2, y2)) not in self.taboo_coords:
+                            if ((x2, y2)) not in self.warehouse.boxes and ((x2, y2)) not in self.warehouse.walls:
+                                L.append(direction)
+        
+        
+        L = []
+        LL = []
+        x, y = self.warehouse.worker
+        if self.macro == False:
+            action('Up')
+            action('Down')
+            action('Left')
+            action('Right')
+#            print(L)
+            return L
+        if self.macro == True:
+            action_macro('Up')
+            action_macro('Down')
+            action_macro('Left')
+            action_macro('Right')
+#            print(self.warehouse.boxes)
+#            print("L",L)
+#            print("LL",LL)
+#            print("L,LL",L,LL)
+            LL = Reverse(LL)
+            z = list(zip(LL, L))
+#            print(z)
+            return (z)
 
     def result(self, state, action):
         """Return the state that results from executing the given
         action in the given state. The action must be one of
         self.actions(state)."""
         self.warehouse.from_string(state)
+#        print(action)
+        if self.macro == False:
+            if action == 'Up':
+                #            print('UP')
+                x, y = self.warehouse.worker
+                if (x, y-1) in self.warehouse.boxes:
+                    index = self.warehouse.boxes.index((x, y-1))
+                    self.warehouse.boxes[index] = (x, y-2)
+                self.warehouse.worker = (x, y-1)
+                return self.warehouse.__str__()
+            if action == 'Down':
+                #            print('DOWN')
+                x, y = self.warehouse.worker
+                if ((x, y+1)) in self.warehouse.boxes:
+                    index = self.warehouse.boxes.index((x, y+1))
+                    self.warehouse.boxes[index] = ((x, y+2))
+                self.warehouse.worker = ((x, y+1))
+                return self.warehouse.__str__()
+            if action == 'Left':
+                #            print('LEFT')
+                x, y = self.warehouse.worker
+                if ((x-1, y)) in self.warehouse.boxes:
+                    index = self.warehouse.boxes.index((x-1, y))
+                    self.warehouse.boxes[index] = ((x-2, y))
+                self.warehouse.worker = ((x-1, y))
+                return self.warehouse.__str__()
+    
+            if action == 'Right':
+                x, y = self.warehouse.worker
+                if ((x+1, y)) in self.warehouse.boxes:
+                    index = self.warehouse.boxes.index((x+1, y))
+                    self.warehouse.boxes[index] = ((x+2, y))
+                self.warehouse.worker = ((x+1, y))
+                return self.warehouse.__str__()
+            
+#        if self.macro == True:
+#            x,y = self.warehouse.worker  
+#            up = (action[0][1],action[0][0]-1)
+#            down = (action[0][1],action[0][0]+1)
+#            left = (action[0][1]-1,action[0][0])
+#            right = (action[0][1]+1,action[0][0])
+#            
+#            if action[1] == 'Up':
+#                if up in self.warehouse.boxes:
+#                    x = self.warehouse.boxes.index(up)
+#                    self.warehouse.worker = self.warehouse.boxes[x]
+#                    self.warehouse.boxes[x] = (up[0],up[1]-1)
+#                    return self.warehouse.__str__()
+#            if action[1] == 'Down':
+#                if down in self.warehouse.boxes:
+#                    x = self.warehouse.boxes.index(down)
+#                    self.warehouse.worker = self.warehouse.boxes[x]
+#                    self.warehouse.boxes[x] = (down[0],down[1]+1)
+#                    return self.warehouse.__str__()
+#            if action[1] == 'Left':
+#                if left in self.warehouse.boxes:
+#                    x = self.warehouse.boxes.index(left)
+#                    self.warehouse.worker = self.warehouse.boxes[x]
+#                    self.warehouse.boxes[x] = (left[0]-1,left[1])
+#                    return self.warehouse.__str__()
+#            if action[1] == 'Right':
+#                if right in self.warehouse.boxes:
+#                    x = self.warehouse.boxes.index(right)
+#                    self.warehouse.worker = self.warehouse.boxes[x]
+#                    self.warehouse.boxes[x] = (right[0]+1,right[1])
+#                    return self.warehouse.__str__()
+        if self.macro == True:
+            x,y = self.warehouse.worker  
+            new_action = (action[0][1],action[0][0])
 
-        if action == 'Up':
-            #            print('UP')
-            x, y = self.warehouse.worker
-            if (x, y-1) in self.warehouse.boxes:
-                index = self.warehouse.boxes.index((x, y-1))
-                self.warehouse.boxes[index] = (x, y-2)
-            self.warehouse.worker = (x, y-1)
-            return self.warehouse.__str__()
-        if action == 'Down':
-            #            print('DOWN')
-            x, y = self.warehouse.worker
-            if ((x, y+1)) in self.warehouse.boxes:
-                index = self.warehouse.boxes.index((x, y+1))
-                self.warehouse.boxes[index] = ((x, y+2))
-            self.warehouse.worker = ((x, y+1))
-            return self.warehouse.__str__()
-        if action == 'Left':
-            #            print('LEFT')
-            x, y = self.warehouse.worker
-            if ((x-1, y)) in self.warehouse.boxes:
-                index = self.warehouse.boxes.index((x-1, y))
-                self.warehouse.boxes[index] = ((x-2, y))
-            self.warehouse.worker = ((x-1, y))
-            return self.warehouse.__str__()
+            
+            if action[1] == 'Up':
+                if new_action in self.warehouse.boxes:
+                    x = self.warehouse.boxes.index(new_action)
+                    self.warehouse.worker = self.warehouse.boxes[x]
+                    self.warehouse.boxes[x] = (new_action[0],new_action[1]-1)
+                    return self.warehouse.__str__()
+            if action[1] == 'Down':
+                if new_action in self.warehouse.boxes:
+                    x = self.warehouse.boxes.index(new_action)
+                    self.warehouse.worker = self.warehouse.boxes[x]
+                    self.warehouse.boxes[x] = (new_action[0],new_action[1]+1)
+                    return self.warehouse.__str__()
+            if action[1] == 'Left':
+                if new_action in self.warehouse.boxes:
+                    x = self.warehouse.boxes.index(new_action)
+                    self.warehouse.worker = self.warehouse.boxes[x]
+                    self.warehouse.boxes[x] = (new_action[0]-1,new_action[1])
+                    return self.warehouse.__str__()
+            if action[1] == 'Right':
+                if new_action in self.warehouse.boxes:
+                    x = self.warehouse.boxes.index(new_action)
+                    self.warehouse.worker = self.warehouse.boxes[x]
+                    self.warehouse.boxes[x] = (new_action[0]+1,new_action[1])
+                    return self.warehouse.__str__()
 
-        if action == 'Right':
-            x, y = self.warehouse.worker
-            if ((x+1, y)) in self.warehouse.boxes:
-                index = self.warehouse.boxes.index((x+1, y))
-                self.warehouse.boxes[index] = ((x+2, y))
-            self.warehouse.worker = ((x+1, y))
-            return self.warehouse.__str__()
+
+                    
+            
+            
 
 #
     def print_solution(self, goal_node):
@@ -307,28 +426,67 @@ class SokobanPuzzle(search.Problem):
             For example, goal node could be obtained by calling 
                 goal_node = breadth_first_tree_search(problem)
         """
+        sequence = []
         # path is list of nodes from initial state (root of the tree)
         # to the goal_node
-        path = goal_node.path()
-        # print the solution
-        print("Solution takes {0} steps from the initial state".format(
-            len(path)-1))
-        print(path[0].state)
-        print("to the goal state")
-        print(path[-1].state)
-#        print("\nBelow is the sequence of moves\n")
-#        for node in path:
-#            if node.action is not None:
+        if goal_node is None:
+            print('Impossible')
+        else: 
+            path = goal_node.path()
+#         print the solution
+            print("Solution takes {0} steps from the initial state".format(len(path)-1))
+            print(path[0].state)
+            print("to the goal state")
+            print(path[-1].state)
+        print("\nBelow is the sequence of moves\n")
+        for node in path:
+            if node.action is not None:
 #                print(format(node.action))
+                sequence.append(node.action)
 #            # COMMENT OUT THIS LINE TO MAKE IT EASIER TO SEE STEPS TAKEN TO GOAL
 #            print(node.state)
+        print(sequence)
+            
+    def print_solution_elem(self, goal_node):
+        """
+            Shows solution represented by a specific goal node.
+            For example, goal node could be obtained by calling 
+                goal_node = breadth_first_tree_search(problem)
+        """
+        # path is list of nodes from initial state (root of the tree)
+        # to the goal_node
+        sequence = []
+        if goal_node is None:
+            return'Impossible'
+        else: 
+            path = goal_node.path()
+        for node in path:
+            if node.action is not None:
+                sequence.append(node.action)
+        
+        return sequence
+    
+    def print_solution_macro(self, goal_node):
+        sequence = []
+        if goal_node is None:
+            return'Impossible'
+        else: 
+            path = goal_node.path()
+        for node in path:
+            if node.action is not None:
+                sequence.append(node.action)
+
+#        print(sequence)
+        return sequence
+        
 
     def goal_test(self, state):
         """Return True if the state is a goal. The default method compares the
         state to self.goal, as specified in the constructor. Override this
         method if checking against a single self.goal is not enough."""
 #        goals_list = self.convert_state_to_mutiple_goal(self.goal_wh)
-        
+        if self.warehouse.targets == self.warehouse.boxes:
+            return True
         if state in self.goal:
             return True
 
@@ -339,6 +497,7 @@ class SokobanPuzzle(search.Problem):
         state2.  If the path does matter, it will consider c and maybe state1
         and action. The default method costs 1 for every step in the path."""
         return c + 1
+        
 
     def h(self, n):
         '''
@@ -352,33 +511,15 @@ class SokobanPuzzle(search.Problem):
         returns a int value which is an estimate of the puzzles distance to
         the goal state.
         '''
-#        print("\nFrom heuristic function:")
-
-#        state = n.state
-#        print(state)
-
-#        w = self.warehouse.worker
         b = self.warehouse.boxes
         t = self.warehouse.targets
-#        print('worker:',w)
-#        print('boxes:',b)
-#        print('targets:',t)
-        
-        
+    
         h = []
         for i in range(0,len(t)):
             h.append(abs(b[i][0] - t[i][0]) + abs(b[i][1] - t[i][1]))
-#        heuristic = 
-#        heuristic = abs(w[0]-t[0]) + abs(w[1]-t[1])
-        heuristic = sum(h)
-#        print('h cost:',heuristic)
 
+        heuristic = sum(h)
         return heuristic
-#
-#    def convert_state_to_goal(self, warehouse):
-#        goal_wh = warehouse.copy(boxes=warehouse.targets)
-#        return goal_wh.__str__()
-#    
     
     def convert_state_to_mutiple_goal(self, warehouse):
         list_of_goal_possible_states = []
@@ -416,9 +557,124 @@ class SokobanPuzzle(search.Problem):
                              (worker_coords[0]-1, worker_coords[1]),
                              (worker_coords[0]+1, worker_coords[1])]
         return wall_check_coords
+    
+    
+    
+    
+    def from_lines(self,lines):
+        first_row_brick, first_column_brick = None, None
+        for row, line in enumerate(lines):
+            brick_column = line.find('#')
+            if brick_column>=0: 
+                if  first_row_brick is None:
+                    first_row_brick = row # found first row with a brick
+                if first_column_brick is None:
+                    first_column_brick = brick_column
+                else:
+                    first_column_brick = min(first_column_brick, brick_column)
+        if first_row_brick is None:
+            raise ValueError('Warehouse with no walls!')
+        canonical_lines = [line[first_column_brick:] 
+                           for line in lines[first_row_brick:] if line.find('#')>=0]
+        self.extract_locations(canonical_lines)      
+    
+    def extract_locations(self,lines):
+        self.taboo_coords = list(sokoban.find_2D_iterator(lines, "X"))
 
 
 opp_states = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+class PathFinderJoseph(search.Problem):
+
+        def __init__(self, warehouse,dst):
+
+            self.dst = dst
+            self.warehouse = warehouse
+            self.initial = warehouse.__str__()
+            self.goal_wh = warehouse.copy(worker = self.dst)
+            self.goal = self.goal_wh.__str__()    
+            
+        def actions(self, state):
+            self.warehouse.from_string(state)
+            x,y = self.warehouse.worker
+            L = []
+            
+            if (x,y-1) not in self.warehouse.walls and (x,y-1) not in self.warehouse.boxes:
+                L.append('Up')
+            if (x,y+1) not in self.warehouse.walls and (x,y+1) not in self.warehouse.boxes:
+                L.append('Down')
+            if (x-1,y) not in self.warehouse.walls and (x-1,y) not in self.warehouse.boxes:
+                L.append('Left')    
+            if (x+1,y) not in self.warehouse.walls and (x+1,y) not in self.warehouse.boxes:
+                L.append('Right')
+            return L
+        
+        def result(self, state, action):
+            self.warehouse.from_string(state)
+            x,y = self.warehouse.worker
+            if action == 'Up':
+                self.warehouse.worker = (x,y-1)
+                return self.warehouse.__str__()
+            if action == 'Down':
+                self.warehouse.worker = (x,y+1)
+                return self.warehouse.__str__()
+            if action == 'Left':
+                self.warehouse.worker = (x-1,y)
+                return self.warehouse.__str__()
+            if action == 'Right':
+                self.warehouse.worker = (x+1,y)
+                return self.warehouse.__str__()
+            
+        def goal_test(self, state):
+            if state == self.goal:
+                return True
+            
+        def print_solution(self, goal_node):
+            """
+                Shows solution represented by a specific goal node.
+                For example, goal node could be obtained by calling 
+                    goal_node = breadth_first_tree_search(problem)
+            """
+            sequence = []
+            # path is list of nodes from initial state (root of the tree)
+            # to the goal_node
+            if goal_node is None:
+#                print('Impossible')
+                return False
+            else: 
+                path = goal_node.path()
+            # print the solution
+#                print("Solution takes {0} steps from the initial state".format(len(path)-1))
+#                print(path[0].state)
+#                print("to the goal state")
+#                print(path[-1].state)
+#            print("\nBelow is the sequence of moves\n")
+            for node in path:
+                if node.action is not None:
+    #                print(format(node.action))
+                    sequence.append(node.action)
+    #            # COMMENT OUT THIS LINE TO MAKE IT EASIER TO SEE STEPS TAKEN TO GOAL
+    #            print(node.state)
+#            print(sequence)
+            return True
+            
+        def h(self, n):
+            x,y = self.warehouse.worker
+            x2,y2 = self.dst
+            
+            
+            h = abs(x-x2)+abs(y-y2)
+            return h
+    
+        def path_cost(self, c, state1, action, state2):
+            """Return the cost of a solution path that arrives at state2 from
+            state1 via action, assuming cost c to get up to state1. If the problem
+            is such that the path doesn't matter, this function will only look at
+            state2.  If the path does matter, it will consider c and maybe state1
+            and action. The default method costs 1 for every step in the path."""
+            return c + 1
+                
+            
 
 
 class PathFinder(search.Problem):
@@ -563,14 +819,20 @@ def solve_sokoban_elem(warehouse):
             For example, ['Left', 'Down', Down','Right', 'Up', 'Down']
             If the puzzle is already in a goal state, simply return []
     '''
+    SBE = SokobanPuzzle(warehouse,allow_taboo_push=False)
+    sol_ts = search.astar_graph_search(SBE)
+    return SBE.print_solution_elem(sol_ts)
 
-    # Load macro actions to execute from solve_sokoban_macro
-    # Check if solved
-    # Check if impossible
-
-    raise NotImplementedError()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+def can_go_there_joseph(warehouse, dst):
+    
+    cgt = PathFinderJoseph(warehouse,(dst))
+    solve = search.astar_graph_search(cgt)
+    CGT = cgt.print_solution(solve)
+    return CGT
 
 
 def can_go_there(warehouse, dst):
@@ -585,6 +847,7 @@ def can_go_there(warehouse, dst):
 
     def heuristic(n):
         state = n.state
+        print(state)
         return math.sqrt(((state[1] - dst[1]) ** 2) + ((state[0] - dst[0]) ** 2))
 
     dst = (dst[1], dst[0])
@@ -652,6 +915,9 @@ def Reverse(tuples):
     return new_list
 
 
+    
+    
+
 def solve_sokoban_macro(warehouse):
     '''    
     Solve using using A* algorithm and macro actions the puzzle defined in 
@@ -670,29 +936,6 @@ def solve_sokoban_macro(warehouse):
         Otherwise return M a sequence of macro actions that solves the puzzle.
         If the puzzle is already in a goal state, simply return []
     '''
-
-    '''
-    Test puzzle layout from sanity_check.py
-
-     0123456  
-    0#######
-    1#@ $ .#
-    2#######
-
-    possible moves by the box: ['Left', 'Right']
-    '''
-
-    '''
-     012345678910    
-    0  #######
-    1###     #
-    2# $ $   #
-    3# ### #####
-    4# @ . .   #
-    5#   ###   #
-    6##### #####
-    '''
-
     def h(n):
         '''
         Heuristic - Uses Manhattan Distance
@@ -705,83 +948,25 @@ def solve_sokoban_macro(warehouse):
         returns a int value which is an estimate of the puzzles distance to
         the goal state.
         '''
-        #print("\nFrom heuristic function:")
-
-        state = n.state
-        print(state)
-        warehouse.extract_locations(state.split('\n'))
-
-        w = warehouse.worker
-        b = warehouse.boxes
-        t = warehouse.targets[0]
-        print(w)
-        print(b)
-        print(t)
-
-        heuristic = abs(w[0]-t[0]) + abs(w[1]-t[1])
-        #print("heuristic: ", heuristic)
-
+        warehouse.extract_locations(n.state.split('\n'))
+        worker, targets, boxes = warehouse.worker, warehouse.targets, warehouse.boxes
+        heuristic = 0
+        for box in boxes:
+            for target in targets:
+                heuristic += abs(box[0]-target[0]) + abs(box[1]-target[1])
+        heuristic = heuristic // len(boxes)
         return heuristic
 
-    M = search.astar_graph_search(SokobanPuzzle(warehouse), h)
+    M = search.astar_graph_search(SokobanPuzzle(warehouse, allow_taboo_push=False, macro = True), h)
 
-    '''
-    SB = SokobanPuzzle(warehouse)
-    print("\nInital set of possible actions:")
-    print(SB.actions(SB.initial))
-    '''
+    if M is None:
+        return 'Impossible'
 
-    p = M.path()
-    print('\nPath actions:')
-    p_actions = [e.action for e in p]
-    print(p_actions)
-    print('\nPath states:')
-    p_state = [e.state for e in p]
-    print(p_state)
+    path = M.path()
+    actions = [e.action for e in path]
+    del actions[0]
 
-    worker_loc = []
-    box_loc = []
-    for s in p_state:
-        # print('\nstate:')
-        # print(s)
-        warehouse.extract_locations(s.split(sep='\n'))
-        # print(warehouse.worker)
-        worker_loc.append(warehouse.worker)
-        box_loc.append(warehouse.boxes)
-
-    print('\nWorker locations (x, y)')
-    print(worker_loc)
-    print('\nWorker locations (y, x)')
-    new_list = Reverse(worker_loc)
-    print(new_list)
-
-
-
-    z = list(zip(new_list, p_actions))
-    print('\nWorker location and action zipped together and the starting state removed:')
-    del z[0]
-    print(z)
-
-    '''
-    # Test distance for boxes to targets (heuristic, manhattan distance?!?)
-
-    for this test manhattan distance == 2 (1 box and 1 target)
-
-    1. Test possible moves of the box(s)
-
-    2. Test if the worker can move to the OPPOSITE side of the possible box moves
-
-    3. Choose next move
-
-    if (M == None):
-        puzzle Impossible
-
-    if (box == goal):
-        puzzle solved
-    
-    '''
-
-    return z
+    return actions
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -821,65 +1006,35 @@ if __name__ == '__main__':
     #
     '''
 
-#    test_string = "#############\n# ##        #\n#.#         #\n#$          #\n#           #\n#@          #\n#############"
-#    test_string = "#############\n#           #\n#           #\n#           #\n#           #\n#    #.#    #\n#    #$#    #\n#    #@#    #\n#############"
+#    test_string = "##############\n# ##    #    #\n#.#    $#    #\n#  $    #    #\n#   .   #    #\n#@      #    #\n##############"
+#    test_string = "#############\n#    .      #\n#           #\n#           #\n#      $    #\n#    #.#    #\n#    #$#    #\n#    #@#    #\n#############"
 #    test_string = "##########\n#   .... #\n#        #\n#$       #\n#$       #\n#@$$     #\n##########"
     wh = sokoban.Warehouse()
     wh.load_warehouse("./warehouses/warehouse_81.txt")
 
 #    wh.from_string(test_string)
-    SB = SokobanPuzzle(wh,allow_taboo_push=False)
-#    print('worker',wh.worker)
-#    print('walls',wh.walls)
-#    print('boxes',wh.boxes)
+    SB = SokobanPuzzle(wh,allow_taboo_push=False,macro = True)
+    
+#    SB.from_lines(SB.lines)
+
+
+#                yield tuple(val)         
+
 
     print("Initial state:")
     print(SB.initial)
-    print("\nGoal states:")
+    print("Goal states:")
     for i in range(0,len(SB.goal)):
         print(SB.goal[i])
-        
-#    
-#    print("\nInital set of possible actions:")
-#    print(SB.actions(SB.initial))
+
 
     t0 = time.time()
     sol_ts = search.astar_graph_search(SB)  # graph search version
     t1 = time.time()
     print('\nA* Solver took {:.6f} seconds'.format(t1-t0))
-
+    
+    
+#    SB.print_solution(sol_ts)
     SB.print_solution(sol_ts)
-#
-#    print(SB.result(wh.__str__(),'Down'))
-#    print(SB.result(wh.__str__(),'Right'))
-
-# print(wh.boxes)
-# print(wh.worker)
-#
-# print(wh.__str__())
-#box_copy = [list(ele) for ele in wh.boxes]
-# print(box_copy)
-##wh.boxes[0] = (1,2)
-# print(wh.boxes)
-#box_copy = [list(ele) for ele in wh.boxes]
-# print(box_copy)
-#box_copy[0][1] -= 1
-# print(box_copy)
-#box_copy = [tuple(l) for l in box_copy]
-# print(box_copy)
-#wh.boxes = box_copy
-# print(wh.__str__())
-# if wh.worker in box_copy:
-#    index = box_copy.index(wh.worker)
-#    print('Index:',index)
-#    box_copy = box_copy[index[1]] - 1
-#    print('box copy after change:', box_copy)
-#    wh.boxes = [tuple(l) for l in box_copy]
-#    print(wh.boxes)
 
 
-#    puzzle_t2 ='#######\n#@ $ .#\n#######'
-#    wh = sokoban.Warehouse()
-#    wh.from_string(puzzle_t2)
-
-#    solve_sokoban_macro(wh)
