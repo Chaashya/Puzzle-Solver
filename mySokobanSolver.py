@@ -693,24 +693,6 @@ def solve_sokoban_macro(warehouse):
     6##### #####
     '''
 
-    '''
-    failed = 'Impossible'
-    x, y = warehouse.worker
-    walls = warehouse.walls
-    boxes = warehouse.boxes
-    targets = warehouse.targets
-    rows = warehouse.nrows
-    cols = warehouse.ncols
-
-    print("Initial Worker x, y:",x, y)
-    print("Initial Boxes x, y:", boxes)
-    print("Targets:", targets)
-#    print("Walls:", walls)
-    print("Rows:", rows)
-    print("Cols:", cols)
-    print()
-    '''
-
     def h(n):
         '''
         Heuristic - Uses Manhattan Distance
@@ -723,7 +705,7 @@ def solve_sokoban_macro(warehouse):
         returns a int value which is an estimate of the puzzles distance to
         the goal state.
         '''
-        print("\nFrom heuristic function:")
+        #print("\nFrom heuristic function:")
 
         state = n.state
         print(state)
@@ -737,7 +719,7 @@ def solve_sokoban_macro(warehouse):
         print(t)
 
         heuristic = abs(w[0]-t[0]) + abs(w[1]-t[1])
-        print("heuristic: ", heuristic)
+        #print("heuristic: ", heuristic)
 
         return heuristic
 
@@ -758,18 +740,22 @@ def solve_sokoban_macro(warehouse):
     print(p_state)
 
     worker_loc = []
+    box_loc = []
     for s in p_state:
         # print('\nstate:')
         # print(s)
         warehouse.extract_locations(s.split(sep='\n'))
         # print(warehouse.worker)
         worker_loc.append(warehouse.worker)
+        box_loc.append(warehouse.boxes)
 
     print('\nWorker locations (x, y)')
     print(worker_loc)
     print('\nWorker locations (y, x)')
     new_list = Reverse(worker_loc)
     print(new_list)
+
+
 
     z = list(zip(new_list, p_actions))
     print('\nWorker location and action zipped together and the starting state removed:')
