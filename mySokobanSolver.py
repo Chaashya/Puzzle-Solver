@@ -406,92 +406,9 @@ class SokobanPuzzle(search.Problem):
                     self.warehouse.boxes[x] = (new_action[0]+1,new_action[1])#moves the box right one cell
                     
             return self.warehouse.__str__()
+            
 
-    # print_solution is used for visualizing how the solve functions are behaving 
-    def print_solution(self, goal_node):
-        '''
-        Shows solution represented by a specific goal node.
-        For example, goal node could be obtained by calling 
-            goal_node = breadth_first_tree_search(problem)
-        '''
-        sequence = []
-        # path is list of nodes from initial state (root of the tree)
-        # to the goal_node
-        if goal_node is None:
-            print('Impossible')
-        else: 
-            path = goal_node.path()
-            # print the solution
-            print("Path Cost is",goal_node.path_cost)
-            print("Solution takes {0} steps from the initial state".format(len(path)-1))
-            if self.weighted == True:
-                print(path[0].state[0])
-                print("to the goal state")
-                print(path[-1].state[0])
-            if self.weighted == False:
-                print(path[0].state)
-                print("to the goal state")
-                print(path[-1].state)
-            print("to the goal state")
 
-        print("\nBelow is the sequence of moves\n")
-        action_counter = 0
-        for node in path:
-            if node.action is not None:
-                if self.weighted == True:
-                    action_counter += node.action[1]
-                    print('current cost of actions: ',action_counter)
-                print(format(node.action))
-                if self.weighted == True:
-                    sequence.append(node.action[0])
-                if self.weighted == False:
-                    sequence.append(node.action)
-        print(sequence)
-        
-    # used to return the appropriate answer for the elem problem. (returns the sequence of actions taken to the arrive at the goal)                
-    def solution_elem(self, goal_node):
-        '''
-        Shows solution represented by a specific goal node.
-        For example, goal node could be obtained by calling 
-            goal_node = breadth_first_tree_search(problem)
-        '''
-        # path is list of nodes from initial state (root of the tree)
-        # to the goal_node
-        sequence = []
-        if goal_node is None:
-            return'Impossible'
-        else: 
-            path = goal_node.path()
-        for node in path:
-            if node.action is not None:
-                sequence.append(node.action)
-        return sequence
-    '''
-    # used to return the appropriate answer for the macro problem. (returns a combination of the sequence of actions taken to the goal and the coordinates that the box was moved from)
-    def solution_macro(self, goal_node):
-        sequence = []
-        if goal_node is None:
-            return'Impossible'
-        else: 
-            path = goal_node.path()
-        for node in path:
-            if node.action is not None:
-                sequence.append(node.action)
-        return sequence
-    '''
-    '''
-    # used to return the appropriate answer for the weighted problem. (returns the sequence of actions taken to the arrive at the goal)    
-    def solution_weighted(self, goal_node):
-        sequence = []
-        if goal_node is None:
-            return 'Impossible'
-        else: 
-            path = goal_node.path()
-        for node in path:
-            if node.action is not None:
-                sequence.append(node.action[0])
-        return sequence
-    '''
     def goal_test(self, state):
         '''
         Return True if the state is a goal. The default method compares the
@@ -524,12 +441,10 @@ class SokobanPuzzle(search.Problem):
         # returns a cost value of 1 per step if weighted is False
         if self.weighted == False:
             return c + 1
-
-#
-# maybe move to the solver functions!!!!
-#        
+        
     def h(self, n):
         '''
+        Used for the weighted solver
         Heurtistic - Uses Manhattan Distance
         To make the heuristic admissible it should be optimisitc. It should
         underestimate the cost from the current state to the goal state.
@@ -566,12 +481,8 @@ class SokobanPuzzle(search.Problem):
         for i in range(0,len(list_of_goal_worker_coords)):
             if list_of_goal_worker_coords[i] not in self.warehouse.walls and list_of_goal_worker_coords[i] not in self.warehouse.targets:
                 list_of_goal_possible_states.append(list_of_goal_worker_coords[i]) 
-        
-        # this makes sure there is no copies of the same goal state in the list
-        def removeDuplicates(lst): 
-            return list(set([i for i in lst]))  
-        
-        list_of_goal_possible_states = removeDuplicates(list_of_goal_possible_states)
+              
+        list_of_goal_possible_states = list(set([i for i in list_of_goal_possible_states]))
         for i in range(0,len(list_of_goal_possible_states)):
             self.goal_wh.worker = list_of_goal_possible_states[i]
             list_of_states.append(self.goal_wh.__str__())
@@ -839,10 +750,7 @@ def solve_sokoban_elem(warehouse):
 
         heuristic = sum(h)
         return heuristic
-
-    # creates a problem class that initializes the class to solve for an elementary problem
-#    SBE = SokobanPuzzle(warehouse, allow_taboo_push=False)
-   
+  
     # uses the astar graph search to find the solution to the problem
     solution = search.astar_graph_search(SokobanPuzzle(warehouse, allow_taboo_push=False), h)
     # path is list of nodes from initial state (root of the tree)
