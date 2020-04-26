@@ -318,87 +318,87 @@ class SokobanPuzzle(search.Problem):
         action in the given state. The action must be one of
         self.actions(state)."""
         if self.weighted == True:
-            self.warehouse.from_string(state[0])
-            self.warehouse.boxes = list(state[1])
+            self.warehouse.from_string(state[0])#creates a warehouse from state[0] (state[0] is a string representation of a warehouse)
+            self.warehouse.boxes = list(state[1])#sets the box coordinated to be in the correct order
         if self.weighted == False:
-            self.warehouse.from_string(state)
+            self.warehouse.from_string(state)#creates a warehouse from the state
         if self.macro == False:
-            
+# solves for elem
             if self.weighted == False:
                 x, y = self.warehouse.worker
                 if action == 'Up':
-                    if (x, y-1) in self.warehouse.boxes:
-                        index = self.warehouse.boxes.index((x, y-1))
-                        self.warehouse.boxes[index] = (x, y-2)
-                    self.warehouse.worker = (x, y-1)
+                    if (x, y-1) in self.warehouse.boxes:#checks if the cell above the worker has a box on it
+                        index = self.warehouse.boxes.index((x, y-1))#finds the index of the box that will be moved
+                        self.warehouse.boxes[index] = (x, y-2)#moves the box up one cell
+                    self.warehouse.worker = (x, y-1)#moves worker up one
                 if action == 'Down':
-                    if ((x, y+1)) in self.warehouse.boxes:
-                        index = self.warehouse.boxes.index((x, y+1))
-                        self.warehouse.boxes[index] = ((x, y+2))
-                    self.warehouse.worker = ((x, y+1))
+                    if ((x, y+1)) in self.warehouse.boxes:#checks if the cell below the worker has a box on it
+                        index = self.warehouse.boxes.index((x, y+1))#finds the index of the box that will be moved
+                        self.warehouse.boxes[index] = ((x, y+2))#moves the box down one cell
+                    self.warehouse.worker = ((x, y+1))#moves worker down one cell
                 if action == 'Left':
-                    if ((x-1, y)) in self.warehouse.boxes:
-                        index = self.warehouse.boxes.index((x-1, y))
-                        self.warehouse.boxes[index] = ((x-2, y))
-                    self.warehouse.worker = ((x-1, y))
+                    if ((x-1, y)) in self.warehouse.boxes:#checks if the cell left of the worker has a box on it
+                        index = self.warehouse.boxes.index((x-1, y))#finds the index of the box that will be moved
+                        self.warehouse.boxes[index] = ((x-2, y))#moves the box left one cell
+                    self.warehouse.worker = ((x-1, y))#moves worker left one cell
                 if action == 'Right':
-                    if ((x+1, y)) in self.warehouse.boxes:
-                        index = self.warehouse.boxes.index((x+1, y))
-                        self.warehouse.boxes[index] = ((x+2, y))
-                    self.warehouse.worker = ((x+1, y))
+                    if ((x+1, y)) in self.warehouse.boxes:#checks if the cell right of the worker has a box on it
+                        index = self.warehouse.boxes.index((x+1, y))#finds the index of the box that will be moved
+                        self.warehouse.boxes[index] = ((x+2, y))#moves the box right one cell
+                    self.warehouse.worker = ((x+1, y))#moves worker right one cell
                     
                 return self.warehouse.__str__()
-    
+# solves for weighted
             if self.weighted == True:
                 x, y = self.warehouse.worker
                 if action[0] == 'Up':
-                    if (x, y-1) in self.warehouse.boxes:
-                        index = self.warehouse.boxes.index((x, y-1))
-                        self.warehouse.boxes[index] = (x, y-2)
-                    self.warehouse.worker = (x, y-1)
+                    if (x, y-1) in self.warehouse.boxes:#checks if the cell above the worker has a box on it
+                        index = self.warehouse.boxes.index((x, y-1))#finds the index of the box that will be moved
+                        self.warehouse.boxes[index] = (x, y-2)#moves the box up one cell
+                    self.warehouse.worker = (x, y-1)#moves the box up one cell
                 if action[0] == 'Down':
-                    if ((x, y+1)) in self.warehouse.boxes:                        
-                        index = self.warehouse.boxes.index((x, y+1))
-                        self.warehouse.boxes[index] = ((x, y+2))
-                    self.warehouse.worker = ((x, y+1))
+                    if ((x, y+1)) in self.warehouse.boxes:#checks if the cell below the worker has a box on it               
+                        index = self.warehouse.boxes.index((x, y+1))#finds the index of the box that will be moved
+                        self.warehouse.boxes[index] = ((x, y+2))#moves the box down one cell
+                    self.warehouse.worker = ((x, y+1))#moves worker down one cell
                 if action[0] == 'Left':
-                    if ((x-1, y)) in self.warehouse.boxes:
-                        index = self.warehouse.boxes.index((x-1, y))
-                        self.warehouse.boxes[index] = ((x-2, y))
-                    self.warehouse.worker = ((x-1, y))
+                    if ((x-1, y)) in self.warehouse.boxes:#checks if the cell left of the worker has a box on it
+                        index = self.warehouse.boxes.index((x-1, y))#finds the index of the box that will be moved
+                        self.warehouse.boxes[index] = ((x-2, y))#moves the box left one cell
+                    self.warehouse.worker = ((x-1, y))#moves worker left one cell
                 if action[0] == 'Right':
-                    if ((x+1, y)) in self.warehouse.boxes:
-                        index = self.warehouse.boxes.index((x+1, y))
-                        self.warehouse.boxes[index] = ((x+2, y))
-                    self.warehouse.worker = ((x+1, y))
+                    if ((x+1, y)) in self.warehouse.boxes:#checks if the cell right of the worker has a box on it
+                        index = self.warehouse.boxes.index((x+1, y))#finds the index of the box that will be moved
+                        self.warehouse.boxes[index] = ((x+2, y))#moves the box right one cell
+                    self.warehouse.worker = ((x+1, y))#moves worker right one cell
                     
                 return self.warehouse.__str__(),tuple(self.warehouse.boxes)
         
-        
+# solves for macro
         if self.macro == True:
             x,y = self.warehouse.worker  
-            new_action = (action[0][1],action[0][0])
+            new_action = (action[0][1],action[0][0])#new action will be the coordinates of the box with action[0][1] being the x coordinate and action[0][1] being the y coordinate
 
             if action[1] == 'Up':
-                if new_action in self.warehouse.boxes:
-                    x = self.warehouse.boxes.index(new_action)
-                    self.warehouse.worker = self.warehouse.boxes[x]
-                    self.warehouse.boxes[x] = (new_action[0],new_action[1]-1)
+                if new_action in self.warehouse.boxes:#makes sure the coordinates are part of the list of coordinates of the boxes
+                    x = self.warehouse.boxes.index(new_action)#finds out which box to move
+                    self.warehouse.worker = self.warehouse.boxes[x]# moves the worker to the location of the box about to be moved
+                    self.warehouse.boxes[x] = (new_action[0],new_action[1]-1)#moves the box up one cell
             if action[1] == 'Down':
-                if new_action in self.warehouse.boxes:
-                    x = self.warehouse.boxes.index(new_action)
-                    self.warehouse.worker = self.warehouse.boxes[x]
-                    self.warehouse.boxes[x] = (new_action[0],new_action[1]+1)
+                if new_action in self.warehouse.boxes:#makes sure the coordinates are part of the list of coordinates of the boxes
+                    x = self.warehouse.boxes.index(new_action)#finds out which box to move
+                    self.warehouse.worker = self.warehouse.boxes[x]# moves the worker to the location of the box about to be moved
+                    self.warehouse.boxes[x] = (new_action[0],new_action[1]+1)#moves the box down one cell
             if action[1] == 'Left':
-                if new_action in self.warehouse.boxes:
-                    x = self.warehouse.boxes.index(new_action)
-                    self.warehouse.worker = self.warehouse.boxes[x]
-                    self.warehouse.boxes[x] = (new_action[0]-1,new_action[1])
+                if new_action in self.warehouse.boxes:#makes sure the coordinates are part of the list of coordinates of the boxes
+                    x = self.warehouse.boxes.index(new_action)#finds out which box to move
+                    self.warehouse.worker = self.warehouse.boxes[x]# moves the worker to the location of the box about to be moved
+                    self.warehouse.boxes[x] = (new_action[0]-1,new_action[1])#moves the box left one cell
             if action[1] == 'Right':
-                if new_action in self.warehouse.boxes:
-                    x = self.warehouse.boxes.index(new_action)
-                    self.warehouse.worker = self.warehouse.boxes[x]
-                    self.warehouse.boxes[x] = (new_action[0]+1,new_action[1])
+                if new_action in self.warehouse.boxes:#makes sure the coordinates are part of the list of coordinates of the boxes
+                    x = self.warehouse.boxes.index(new_action)#finds out which box to move
+                    self.warehouse.worker = self.warehouse.boxes[x]# moves the worker to the location of the box about to be moved
+                    self.warehouse.boxes[x] = (new_action[0]+1,new_action[1])#moves the box right one cell
                     
             return self.warehouse.__str__()
 
