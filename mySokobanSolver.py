@@ -30,6 +30,7 @@ def my_team():
     '''
     return [('n10122702', 'Chaashya', 'Fernando'), ('n9934847', 'Joseph', 'Modolo'), ('n9922121', 'Riley', 'Albiston')]
 
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -218,19 +219,19 @@ class SokobanPuzzle(search.Problem):
                 # coordinates of the box currently being looked at
                 box_loc = self.warehouse.boxes[i]
                 if direction == 'Up':
-                    if can_go_there_joseph(self.warehouse,(box_loc[0],box_loc[1]+1)) and (box_loc[0],box_loc[1]-1) not in self.warehouse.walls and (box_loc[0],box_loc[1]-1) not in self.warehouse.boxes and (box_loc[0],box_loc[1]-1) not in self.taboo_coords:
+                    if can_go_there_macro(self.warehouse,(box_loc[0],box_loc[1]+1)) and (box_loc[0],box_loc[1]-1) not in self.warehouse.walls and (box_loc[0],box_loc[1]-1) not in self.warehouse.boxes and (box_loc[0],box_loc[1]-1) not in self.taboo_coords:
                         L.append('Up')
                         LL.append(box_loc)
                 if direction == 'Down':   
-                    if can_go_there_joseph(self.warehouse,(box_loc[0],box_loc[1]-1)) and (box_loc[0],box_loc[1]+1) not in self.warehouse.walls and (box_loc[0],box_loc[1]+1) not in self.warehouse.boxes and (box_loc[0],box_loc[1]+1) not in self.taboo_coords:
+                    if can_go_there_macro(self.warehouse,(box_loc[0],box_loc[1]-1)) and (box_loc[0],box_loc[1]+1) not in self.warehouse.walls and (box_loc[0],box_loc[1]+1) not in self.warehouse.boxes and (box_loc[0],box_loc[1]+1) not in self.taboo_coords:
                         L.append('Down')
                         LL.append(box_loc)
                 if direction == 'Left':  
-                    if can_go_there_joseph(self.warehouse,(box_loc[0]+1,box_loc[1])) and (box_loc[0]-1,box_loc[1]) not in self.warehouse.walls and (box_loc[0]-1,box_loc[1]) not in self.warehouse.boxes and (box_loc[0]-1,box_loc[1]) not in self.taboo_coords:
+                    if can_go_there_macro(self.warehouse,(box_loc[0]+1,box_loc[1])) and (box_loc[0]-1,box_loc[1]) not in self.warehouse.walls and (box_loc[0]-1,box_loc[1]) not in self.warehouse.boxes and (box_loc[0]-1,box_loc[1]) not in self.taboo_coords:
                         L.append('Left')
                         LL.append(box_loc)
                 if direction == 'Right':   
-                    if can_go_there_joseph(self.warehouse,(box_loc[0]-1,box_loc[1])) and (box_loc[0]+1,box_loc[1]) not in self.warehouse.walls and (box_loc[0]+1,box_loc[1]) not in self.warehouse.boxes and (box_loc[0]+1,box_loc[1]) not in self.taboo_coords:
+                    if can_go_there_macro(self.warehouse,(box_loc[0]-1,box_loc[1])) and (box_loc[0]+1,box_loc[1]) not in self.warehouse.walls and (box_loc[0]+1,box_loc[1]) not in self.warehouse.boxes and (box_loc[0]+1,box_loc[1]) not in self.taboo_coords:
                         L.append('Right')
                         LL.append(box_loc) 
 
@@ -831,7 +832,7 @@ def solve_sokoban_elem(warehouse):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-def can_go_there_joseph(warehouse, dst):
+def can_go_there_macro(warehouse, dst):
     '''
     Uses an astar graph serach to determine if there is a path from the worker 
     to the specified destination (Only used in the macro solver)
