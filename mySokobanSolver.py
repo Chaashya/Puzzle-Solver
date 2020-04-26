@@ -178,15 +178,6 @@ class SokobanPuzzle(search.Problem):
     return elementary actions.        
     '''
 
-    #
-    #         "INSERT YOUR CODE HERE"
-    #
-    #     Revisit the sliding puzzle and the pancake puzzle for inspiration!
-    #
-    #     Note that you will need to add several functions to
-    #     complete this class. For example, a 'result' function is needed
-    #     to satisfy the interface of 'search.Problem'.
-
     def __init__(self, warehouse,allow_taboo_push = False, macro = False, weighted = False, box_weights = None):
 
         self.warehouse = warehouse
@@ -204,8 +195,6 @@ class SokobanPuzzle(search.Problem):
         if weighted == True:
             self.initial = warehouse.__str__(),tuple(self.warehouse.boxes)
     
-
-
     def actions(self, state):
         """
         Return the list of actions that can be executed in the given state.
@@ -214,18 +203,19 @@ class SokobanPuzzle(search.Problem):
         'self.allow_taboo_push' and 'self.macro' should be tested to determine
         what type of list of actions is to be returned.
         """
-        # print('boxes before warehouse created',self.warehouse.boxes)
-        # print('STATE action')
-        # print(state[0])
+
         if self.weighted == True:
             self.warehouse.from_string(state[0])
             self.warehouse.boxes = list(state[1])
         if self.weighted == False:
             self.warehouse.from_string(state)
-        # print('after warehouse created' ,self.warehouse.boxes)
-        
+# checks to see if a worker can move to opposite side of a box, then checks that
+# the box movement won't push into a wall/another box/taboo cell. If the movent 
+# is legal, it is appended to the list LL    
         def action_macro(direction):
+            # cycles through each box in the warehouse
             for i in range(0,len(self.warehouse.boxes)):
+                # coordinates of the box currently being looked at
                 box_loc = self.warehouse.boxes[i]
                 if direction == 'Up':
                     if can_go_there_joseph(self.warehouse,(box_loc[0],box_loc[1]+1)) and (box_loc[0],box_loc[1]-1) not in self.warehouse.walls and (box_loc[0],box_loc[1]-1) not in self.warehouse.boxes and (box_loc[0],box_loc[1]-1) not in self.taboo_coords:
@@ -243,11 +233,13 @@ class SokobanPuzzle(search.Problem):
                     if can_go_there_joseph(self.warehouse,(box_loc[0]-1,box_loc[1])) and (box_loc[0]+1,box_loc[1]) not in self.warehouse.walls and (box_loc[0]+1,box_loc[1]) not in self.warehouse.boxes and (box_loc[0]+1,box_loc[1]) not in self.taboo_coords:
                         L.append('Right')
                         LL.append(box_loc)
-            
+# handles both weighted and elem solutions. Checks for legal movement directions
+ # and appends them to the list L. If weighted is True, it also appends the cost 
+ # of the current movement to the list L_weighted.
         def action(direction):
-                    
+
             if direction == 'Up':
-                x1 = x
+                x1 = x                  
                 x2 = x
                 y1 = y-1
                 y2 = y-2
@@ -270,28 +262,29 @@ class SokobanPuzzle(search.Problem):
             if ((x1, y1)) not in self.warehouse.walls:
                 if ((x1, y1)) not in self.warehouse.boxes:
                     if self.weighted == True:
+                        # if the worker is moving without a box being pushed it will set the cost to 1 for this action
                         L_weighted.append(1)
                     L.append(direction)
                 if ((x1, y1)) in self.warehouse.boxes:
-                    # print('boxes: ',self.warehouse.boxes)
                     index = self.warehouse.boxes.index((x1,y1))
                     if self.allow_taboo_push:        
                         if ((x2, y2)) not in self.warehouse.boxes and ((x2, y2)) not in self.warehouse.walls:
                             if self.weighted == True:     
+                                # sets the cost of the action taken equal to the wight of the moved box
                                 L_weighted.append(self.box_weights[index])
                             L.append(direction)
                     if self.allow_taboo_push is False:
                         if ((x2, y2)) not in self.taboo_coords:
                             if ((x2, y2)) not in self.warehouse.boxes and ((x2, y2)) not in self.warehouse.walls:
-                                if self.weighted == True:      
+                                if self.weighted == True:    
+                                    # sets the cost of the action taken equal to the wight of the moved box
                                     L_weighted.append(self.box_weights[index])
                                 L.append(direction)
 
-        L = []
-        LL = []
-        L_weighted = []
-        # box_coords = []
-        x, y = self.warehouse.worker
+        L = []  #   List of considered directions 
+        LL = [] #   List of coordinates of the boxes being considered
+        L_weighted = [] #   List of the considered box weights
+        x, y = self.warehouse.worker    #   x,y refer to the x and y coordinates of the worker in the current warehouse
         if self.macro == False:
             action('Up')
             action('Down')
@@ -300,136 +293,116 @@ class SokobanPuzzle(search.Problem):
             if self.weighted == False:
                 return L
             if self.weighted == True:
+                #combines the directions moved and the cost of each move associated
                 z = list(zip(L, L_weighted))
-                # print(z)
-                # return L
                 return z
         if self.macro == True:
             action_macro('Up')
             action_macro('Down')
             action_macro('Left')
             action_macro('Right')
-
+            # reverses the coordinates from (x,y) to (y,x)
             LL = Reverse(LL)
+            # combines the coorditates and the directions moved into one list
             z = list(zip(LL, L))
 
             return (z)
 
+# Deals with elem, macro and weighted solutions. Will return a string representation of the 
+# warehouse after an action for elem and macro. For weighted, will return a string representation
+# of the warehouse after an action and the coordinates of the boxes(this is because as the 
+# warehouse is built from a string, the order of boxes changes depending where they are located)
+# by keeping track of the box locations, the box weights will be applied to the appropriate box)
     def result(self, state, action):
         """Return the state that results from executing the given
         action in the given state. The action must be one of
         self.actions(state)."""
-        # print('STATE result')
-        # print(state)
         if self.weighted == True:
             self.warehouse.from_string(state[0])
             self.warehouse.boxes = list(state[1])
         if self.weighted == False:
             self.warehouse.from_string(state)
         if self.macro == False:
+            
             if self.weighted == False:
+                x, y = self.warehouse.worker
                 if action == 'Up':
-                    #            print('UP')
-                    x, y = self.warehouse.worker
                     if (x, y-1) in self.warehouse.boxes:
                         index = self.warehouse.boxes.index((x, y-1))
                         self.warehouse.boxes[index] = (x, y-2)
                     self.warehouse.worker = (x, y-1)
-                    return self.warehouse.__str__()
                 if action == 'Down':
-                    #            print('DOWN')
-                    x, y = self.warehouse.worker
                     if ((x, y+1)) in self.warehouse.boxes:
                         index = self.warehouse.boxes.index((x, y+1))
                         self.warehouse.boxes[index] = ((x, y+2))
                     self.warehouse.worker = ((x, y+1))
-                    return self.warehouse.__str__()
                 if action == 'Left':
-                    #            print('LEFT')
-                    x, y = self.warehouse.worker
                     if ((x-1, y)) in self.warehouse.boxes:
                         index = self.warehouse.boxes.index((x-1, y))
                         self.warehouse.boxes[index] = ((x-2, y))
                     self.warehouse.worker = ((x-1, y))
-                    return self.warehouse.__str__()
-        
                 if action == 'Right':
-                    x, y = self.warehouse.worker
                     if ((x+1, y)) in self.warehouse.boxes:
                         index = self.warehouse.boxes.index((x+1, y))
                         self.warehouse.boxes[index] = ((x+2, y))
                     self.warehouse.worker = ((x+1, y))
-                    return self.warehouse.__str__()
-            
+                    
+                return self.warehouse.__str__()
+    
             if self.weighted == True:
+                x, y = self.warehouse.worker
                 if action[0] == 'Up':
-                    #            print('UP')
-                    x, y = self.warehouse.worker
                     if (x, y-1) in self.warehouse.boxes:
                         index = self.warehouse.boxes.index((x, y-1))
                         self.warehouse.boxes[index] = (x, y-2)
                     self.warehouse.worker = (x, y-1)
-                    # print(self.warehouse.__str__(),tuple(self.warehouse.boxes))
-                    return self.warehouse.__str__(),tuple(self.warehouse.boxes)
                 if action[0] == 'Down':
-                    #            print('DOWN')
-                    x, y = self.warehouse.worker
                     if ((x, y+1)) in self.warehouse.boxes:                        
                         index = self.warehouse.boxes.index((x, y+1))
                         self.warehouse.boxes[index] = ((x, y+2))
                     self.warehouse.worker = ((x, y+1))
-                    # print(self.warehouse.__str__(),tuple(self.warehouse.boxes))
-                    return self.warehouse.__str__(),tuple(self.warehouse.boxes)
                 if action[0] == 'Left':
-                    #            print('LEFT')
-                    x, y = self.warehouse.worker
                     if ((x-1, y)) in self.warehouse.boxes:
                         index = self.warehouse.boxes.index((x-1, y))
                         self.warehouse.boxes[index] = ((x-2, y))
                     self.warehouse.worker = ((x-1, y))
-                    # print(self.warehouse.__str__(),tuple(self.warehouse.boxes))
-                    return self.warehouse.__str__(),tuple(self.warehouse.boxes)
-        
                 if action[0] == 'Right':
-                    x, y = self.warehouse.worker
                     if ((x+1, y)) in self.warehouse.boxes:
                         index = self.warehouse.boxes.index((x+1, y))
                         self.warehouse.boxes[index] = ((x+2, y))
                     self.warehouse.worker = ((x+1, y))
-                    # print(self.warehouse.__str__(),tuple(self.warehouse.boxes))
-                    return self.warehouse.__str__(),tuple(self.warehouse.boxes)
+                    
+                return self.warehouse.__str__(),tuple(self.warehouse.boxes)
         
         
         if self.macro == True:
             x,y = self.warehouse.worker  
             new_action = (action[0][1],action[0][0])
 
-            
             if action[1] == 'Up':
                 if new_action in self.warehouse.boxes:
                     x = self.warehouse.boxes.index(new_action)
                     self.warehouse.worker = self.warehouse.boxes[x]
                     self.warehouse.boxes[x] = (new_action[0],new_action[1]-1)
-                    return self.warehouse.__str__()
             if action[1] == 'Down':
                 if new_action in self.warehouse.boxes:
                     x = self.warehouse.boxes.index(new_action)
                     self.warehouse.worker = self.warehouse.boxes[x]
                     self.warehouse.boxes[x] = (new_action[0],new_action[1]+1)
-                    return self.warehouse.__str__()
             if action[1] == 'Left':
                 if new_action in self.warehouse.boxes:
                     x = self.warehouse.boxes.index(new_action)
                     self.warehouse.worker = self.warehouse.boxes[x]
                     self.warehouse.boxes[x] = (new_action[0]-1,new_action[1])
-                    return self.warehouse.__str__()
             if action[1] == 'Right':
                 if new_action in self.warehouse.boxes:
                     x = self.warehouse.boxes.index(new_action)
                     self.warehouse.worker = self.warehouse.boxes[x]
                     self.warehouse.boxes[x] = (new_action[0]+1,new_action[1])
-                    return self.warehouse.__str__()
+                    
+            return self.warehouse.__str__()
 
+# print_solution is used for visualizing how the solve functions are behaving 
     def print_solution(self, goal_node):
         """
             Shows solution represented by a specific goal node.
@@ -474,8 +447,9 @@ class SokobanPuzzle(search.Problem):
             # if self.weighted == False:
             #     print(node.state)
         print(sequence)
-            
-    def print_solution_elem(self, goal_node):
+        
+# used to return the appropriate answer for the elem problem. (returns the sequence of actions taken to the arrive at the goal)                
+    def solution_elem(self, goal_node):
         """
             Shows solution represented by a specific goal node.
             For example, goal node could be obtained by calling 
@@ -491,11 +465,10 @@ class SokobanPuzzle(search.Problem):
         for node in path:
             if node.action is not None:
                 sequence.append(node.action)
-        
         return sequence
     
-    
-    def print_solution_macro(self, goal_node):
+# used to return the appropriate answer for the weighted problem. (returns a combination of the sequence of actions taken to the goal and the coordinates that the box was moved from)
+    def solution_macro(self, goal_node):
         sequence = []
         if goal_node is None:
             return'Impossible'
@@ -504,11 +477,9 @@ class SokobanPuzzle(search.Problem):
         for node in path:
             if node.action is not None:
                 sequence.append(node.action)
-
-#        print(sequence)
         return sequence
-    
-    def print_solution_weighted(self, goal_node):
+# used to return the appropriate answer for the weighted problem. (returns the sequence of actions taken to the arrive at the goal)    
+    def solution_weighted(self, goal_node):
         sequence = []
         if goal_node is None:
             return 'Impossible'
@@ -524,12 +495,14 @@ class SokobanPuzzle(search.Problem):
         """Return True if the state is a goal. The default method compares the
         state to self.goal, as specified in the constructor. Override this
         method if checking against a single self.goal is not enough."""
-#        goals_list = self.convert_state_to_mutiple_goal(self.goal_wh)
+# tests to see if the initial state is already in a goal state
         if self.weighted == False:
             if self.warehouse.targets == self.warehouse.boxes:
                 return True
+# tests to see if the current state is in the list of goal states
             if state in self.goal:
                 return True
+# tests to see if the current state is in the list of goal states
         if self.weighted == True:
             if state[0] in self.goal:
                 return True
@@ -540,9 +513,10 @@ class SokobanPuzzle(search.Problem):
         is such that the path doesn't matter, this function will only look at
         state2.  If the path does matter, it will consider c and maybe state1
         and action. The default method costs 1 for every step in the path."""
+# adds the current cost to the cost of the new action. This depends on the weights of the boxes being moved        
         if self.weighted == True:
-            
             return c + action[1]
+# returns a cost value of 1 per step if weighted is False
         if self.weighted == False:
             return c + 1
         
@@ -568,15 +542,15 @@ class SokobanPuzzle(search.Problem):
 
         heuristic = sum(h)
         return heuristic
-    
+# used to convert the initial state of the wearhosue into a list of all possible goal states.     
     def convert_state_to_mutiple_goal(self, warehouse):
         list_of_goal_possible_states = []
         list_of_goal_worker_coords = []
         list_of_states = []
         
         t = self.goal_wh.targets
+        # makes a list of coordintates that surround each target
         for i in range(0,len(t)):
-#            print(t)
             list_of_goal_worker_coords.append((t[i][0],t[i][1]-1))
             list_of_goal_worker_coords.append((t[i][0],t[i][1]+1))
             list_of_goal_worker_coords.append((t[i][0]-1,t[i][1]))
@@ -584,31 +558,17 @@ class SokobanPuzzle(search.Problem):
         for i in range(0,len(list_of_goal_worker_coords)):
             if list_of_goal_worker_coords[i] not in self.warehouse.walls and list_of_goal_worker_coords[i] not in self.warehouse.targets:
                 list_of_goal_possible_states.append(list_of_goal_worker_coords[i]) 
-
+# this makes sure there is no copies of the same goal state in the list
         def removeDuplicates(lst): 
             return list(set([i for i in lst]))  
         
         list_of_goal_possible_states = removeDuplicates(list_of_goal_possible_states)
-#        print('list of possible goal states',list_of_goal_possible_states)
         for i in range(0,len(list_of_goal_possible_states)):
             self.goal_wh.worker = list_of_goal_possible_states[i]
             list_of_states.append(self.goal_wh.__str__())
-#            print(list_of_states[i])
         return(list_of_states)
             
-        
-
-    def check_for_wall(self, state):
-        worker_coords = list(state.worker)
-        wall_check_coords = [(worker_coords[0], worker_coords[1]-1),
-                             (worker_coords[0], worker_coords[1]+1),
-                             (worker_coords[0]-1, worker_coords[1]),
-                             (worker_coords[0]+1, worker_coords[1])]
-        return wall_check_coords
-    
-    
-    
-    
+# this was taken from the sokoban.py and adapted so that the correct coordinates of the taboo cells 
     def from_lines(self,lines):
         first_row_brick, first_column_brick = None, None
         for row, line in enumerate(lines):
@@ -625,28 +585,32 @@ class SokobanPuzzle(search.Problem):
         canonical_lines = [line[first_column_brick:] 
                            for line in lines[first_row_brick:] if line.find('#')>=0]
         self.extract_locations(canonical_lines)      
-    
+# this was taken from the sokoban.py and adapted so that the correct coordinates of the taboo cells    
     def extract_locations(self,lines):
         self.taboo_coords = list(sokoban.find_2D_iterator(lines, "X"))
 
 
 opp_states = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 
+# this class is used for the purpose of finding that a path is possible from the workers initial location to the workers desired location. It is only used for the macro solver
 class PathFinderJoseph(search.Problem):
 
         def __init__(self, warehouse,dst):
 
-            self.dst = dst
+            self.dst = dst# coordinates of the desired location for the worker to move to
             self.warehouse = warehouse
-            self.initial = warehouse.__str__()
-            self.goal_wh = warehouse.copy(worker = self.dst)
-            self.goal = self.goal_wh.__str__()    
+            self.initial = warehouse.__str__()# initial is a string representation of the warehouse(this will be the initial state that all other states will stem from)
+            self.goal_wh = warehouse.copy(worker = self.dst)#   copies the current warehouse except now has the worker at the desired location(this is the warehouse goal layout)
+            self.goal = self.goal_wh.__str__()# converts the goal warehouse into a string representation for the later use of checking if he current state is in the goal state or not
             
         def actions(self, state):
+# converts the current state which is a string representation of the warehouse into a warehouse 
             self.warehouse.from_string(state)
+# defines the x and y coordinates of the worker in the current warehouse
             x,y = self.warehouse.worker
+# List of legal actions
             L = []
-            
+# appends the appropriate action to the list L            
             if (x,y-1) not in self.warehouse.walls and (x,y-1) not in self.warehouse.boxes:
                 L.append('Up')
             if (x,y+1) not in self.warehouse.walls and (x,y+1) not in self.warehouse.boxes:
@@ -656,27 +620,27 @@ class PathFinderJoseph(search.Problem):
             if (x+1,y) not in self.warehouse.walls and (x+1,y) not in self.warehouse.boxes:
                 L.append('Right')
             return L
-        
+# (state) is a string representation of a warehouse and (action) is a string of either 'Up', 'Down', 'Left', 'Right'          
         def result(self, state, action):
+# converts the current state which is a string representation of the warehouse into a warehouse 
             self.warehouse.from_string(state)
+# defines the x and y coordinates of the worker in the current warehouse            
             x,y = self.warehouse.worker
+# moves the worker to the new location depending on the input action            
             if action == 'Up':
                 self.warehouse.worker = (x,y-1)
-                return self.warehouse.__str__()
             if action == 'Down':
                 self.warehouse.worker = (x,y+1)
-                return self.warehouse.__str__()
             if action == 'Left':
                 self.warehouse.worker = (x-1,y)
-                return self.warehouse.__str__()
             if action == 'Right':
                 self.warehouse.worker = (x+1,y)
-                return self.warehouse.__str__()
-            
+            return self.warehouse.__str__()
+# checks to see if the current state is the goal state and if it is, it will return True           
         def goal_test(self, state):
             if state == self.goal:
                 return True
-            
+# Used to visualise how the solver found the path and what the path chosen was 
         def print_solution(self, goal_node):
             """
                 Shows solution represented by a specific goal node.
@@ -687,33 +651,34 @@ class PathFinderJoseph(search.Problem):
             # path is list of nodes from initial state (root of the tree)
             # to the goal_node
             if goal_node is None:
-#                print('Impossible')
+                # print('Impossible')
                 return False
             else: 
                 path = goal_node.path()
             # print the solution
-#                print("Solution takes {0} steps from the initial state".format(len(path)-1))
-#                print(path[0].state)
-#                print("to the goal state")
-#                print(path[-1].state)
-#            print("\nBelow is the sequence of moves\n")
+            #     print("Solution takes {0} steps from the initial state".format(len(path)-1))
+            #     print(path[0].state)
+            #     print("to the goal state")
+            #     print(path[-1].state)
+            # print("\nBelow is the sequence of moves\n")
             for node in path:
                 if node.action is not None:
-    #                print(format(node.action))
+                    # print(format(node.action))
                     sequence.append(node.action)
-    #            # COMMENT OUT THIS LINE TO MAKE IT EASIER TO SEE STEPS TAKEN TO GOAL
-    #            print(node.state)
-#            print(sequence)
+# COMMENT OUT THIS LINE TO MAKE IT EASIER TO SEE STEPS TAKEN TO GOAL
+            #     print(node.state)
+            # print(sequence)
             return True
             
         def h(self, n):
+            # worker coordinates
             x,y = self.warehouse.worker
+            #desired location for the worker to move to
             x2,y2 = self.dst
-            
-            
+            #a heuristic which finds the Manhatten distance from the worker position to the desired position
             h = abs(x-x2)+abs(y-y2)
             return h
-    
+# This sets the cost of one movement of the worker to 1.    
         def path_cost(self, c, state1, action, state2):
             """Return the cost of a solution path that arrives at state2 from
             state1 via action, assuming cost c to get up to state1. If the problem
@@ -867,16 +832,23 @@ def solve_sokoban_elem(warehouse):
             For example, ['Left', 'Down', Down','Right', 'Up', 'Down']
             If the puzzle is already in a goal state, simply return []
     '''
+#   creates a problem class that initializes the class to solve for an elementary problem
     SBE = SokobanPuzzle(warehouse,allow_taboo_push=False)
-    sol_ts = search.astar_graph_search(SBE)
-    return SBE.print_solution_elem(sol_ts)
+#   uses the astar graph search to find the solution to the problem
+    solution = search.astar_graph_search(SBE)
+#   runs the solution_elem fuction which returns the list of actions taken to solve the specified warehouse problem
+#   If no path is found, it will return the string 'Impossible'
+#   If the puzzle is already in a goal state, it will return []
+    return SBE.solution_elem(solution)
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
+#   Uses an astar graph serach to determine if there is a path from the worker 
+#   to the specified destination (Only used in the macro solver)
+#   warehouse must be a warehouse object
+#   dst must be a valid coordinate within the warehouse
 def can_go_there_joseph(warehouse, dst):
-    
     cgt = PathFinderJoseph(warehouse,(dst))
     solve = search.astar_graph_search(cgt)
     CGT = cgt.print_solution(solve)
@@ -905,55 +877,9 @@ def can_go_there(warehouse, dst):
 
     return node is not None
 
-    # warehouse_squares = str(warehouse).split('\n')
-
-    # index = 0
-    # for strings in warehouse_squares:
-    #     warehouse_squares[index] = list(strings)
-    #     index += 1
-
-    # x_size = len(warehouse_squares[0])
-    # y_size = len(warehouse_squares)
-
-    # workerx = warehouse.worker[0]
-    # workery = warehouse.worker[1]
-
-    # dstx = dst[0]
-    # dsty = dst[1]
-
-    # for box in warehouse.boxes:
-    #     boxx = box[0]
-    #     boxy = box[1]
-
-    #     # box is on goal - worker cannot move here
-    #     if box == dst:
-    #         return False
-
-    #     # If box y location is within worker y and goal y
-    #     if boxy in range(workery, dsty):
-    #         # If box is in same row - will collide
-    #         if boxx == workerx:
-    #             return False
-
-    #     # If box x location is within worker x and goal x
-    #     if boxx in range(workerx, dstx):
-    #         # If box is in same column - will collide
-    #         if boxy == workery:
-    #             return False
-
-    #     # If goal is out of the x bounds of the warehouse
-    #     if dstx <= 0 or dstx > x_size:
-    #         return False
-
-    #     # If goal is out of the y bounds of the warehouse
-    #     if dsty <= 0 or dsty > y_size:
-    #         return False
-
-    # return True
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
+# Reverses the coordinates from (x,y) to (y,x), used only in the macro solver
 def Reverse(tuples):
     new_list = []
     new_tup = ()
@@ -1040,10 +966,13 @@ def solve_weighted_sokoban_elem(warehouse, push_costs):
             For example, ['Left', 'Down', Down','Right', 'Up', 'Down']
             If the puzzle is already in a goal state, simply return []
     '''
-
+#   creates a problem class that initializes the class to solve for weighted problem
     SBW = SokobanPuzzle(warehouse,allow_taboo_push=False, macro = False, weighted = True, box_weights = push_costs)
-    sol_ts = search.astar_graph_search(SBW)
-    return SBW.print_solution_weighted(sol_ts)
+#   uses the astar graph search to find the solution to the problem
+    solution = search.astar_graph_search(SBW)
+#   runs the solution_weighted fuction which returns the list of actions taken to solve the specified warehouse problem
+#   If no path is found, it will return the string 'Impossible'
+    return SBW.solution_weighted(solution)
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1064,9 +993,9 @@ if __name__ == '__main__':
     wh.load_warehouse("./warehouses/warehouse_81.txt")
 
 # UNCOMMENT THE NEXT THREE LINES TO RUN SOKOBAN WEIGHTED (MAKE SURE THERE IS THE SAME AMOUNT OF BOX WEIGHTS AS THERE ARE BOXES IN THE CHOSEN WAREHOUSE)
-    SBW = SokobanPuzzle(wh,allow_taboo_push=False, macro = False, weighted = True, box_weights = [3,9,2])
-    sol_ts = search.astar_graph_search(SBW)
-    SBW.print_solution(sol_ts) # go to print_solution to edit what the result will print
+    # SBW = SokobanPuzzle(wh,allow_taboo_push=False, macro = False, weighted = True, box_weights = [3,9,2])
+    # sol_ts = search.astar_graph_search(SBW)
+    # SBW.print_solution(sol_ts) # go to print_solution to edit what the result will print
     
 # UNCOMMENT THE NEXT THREE LINES TO RUN SOKOBAN ELEM 
     # SBE = SokobanPuzzle(wh,allow_taboo_push=False)
@@ -1074,7 +1003,7 @@ if __name__ == '__main__':
     # SBE.print_solution(sol_ts) # go to print_solution to edit what the result will print
 
 # UNCOMMENT THE NEXT THREE LINES TO RUN SOKOBAN MACRO
-    # SB = SokobanPuzzle(wh,allow_taboo_push=False,macro = True)
-    # sol_ts = search.astar_graph_search(SB)
-    # SB.print_solution(sol_ts) # go to print_solution to edit what the result will print
+    SB = SokobanPuzzle(wh,allow_taboo_push=False,macro = True)
+    sol_ts = search.astar_graph_search(SB)
+    SB.print_solution(sol_ts) # go to print_solution to edit what the result will print
 
