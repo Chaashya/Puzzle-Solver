@@ -702,7 +702,6 @@ class PathFinderJoseph(search.Problem):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -               
             
 
-
 class PathFinder(search.Problem):
     def __init__(self, initial, warehouse, goal=None):
         self.initial = initial
@@ -819,14 +818,45 @@ def solve_sokoban_elem(warehouse):
             For example, ['Left', 'Down', Down','Right', 'Up', 'Down']
             If the puzzle is already in a goal state, simply return []
     '''
+    def h(n):
+        '''
+        Heurtistic - Uses Manhattan Distance
+        To make the heuristic admissible it should be optimisitc. It should
+        underestimate the cost from the current state to the goal state.
+
+        Possible option: Use the sum of the manhattan distance of each box 
+        to it's nearest target.
+
+        returns a int value which is an estimate of the puzzles distance to
+        the goal state.
+        '''
+        warehouse.extract_locations(n.state.split('\n'))
+        worker, targets, boxes = warehouse.worker, warehouse.targets, warehouse.boxes
+
+        h = []
+        for i in range(0,len(targets)):
+            h.append(abs(boxes[i][0] - targets[i][0]) + abs(boxes[i][1] - targets[i][1]))
+
+        heuristic = sum(h)
+        return heuristic
+
     # creates a problem class that initializes the class to solve for an elementary problem
-    SBE = SokobanPuzzle(warehouse,allow_taboo_push=False)
+#    SBE = SokobanPuzzle(warehouse, allow_taboo_push=False)
+   
     # uses the astar graph search to find the solution to the problem
-    solution = search.astar_graph_search(SBE)
-    # runs the solution_elem fuction which returns the list of actions taken to solve the specified warehouse problem
-    # If no path is found, it will return the string 'Impossible'
-    # If the puzzle is already in a goal state, it will return []
-    return SBE.solution_elem(solution)
+    solution = search.astar_graph_search(SokobanPuzzle(warehouse, allow_taboo_push=False), h)
+    # path is list of nodes from initial state (root of the tree)
+    # to the goal_node
+    sequence = []
+    if solution is None:
+        return'Impossible'
+    else: 
+        path = solution.path()
+    for node in path:
+        if node.action is not None:
+            sequence.append(node.action)
+
+    return sequence
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -869,8 +899,8 @@ def can_go_there(warehouse, dst):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
-# Reverses the coordinates from (x,y) to (y,x), used only in the macro solver
 def Reverse(tuples):
+    # Reverses the coordinates from (x,y) to (y,x), used only in the macro solver
     new_list = []
     new_tup = ()
     for i, k in tuples:
