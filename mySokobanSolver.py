@@ -311,16 +311,17 @@ class SokobanPuzzle(search.Problem):
 
             return (z)
 
-    # Deals with elem, macro and weighted solutions. Will return a string representation of the 
-    # warehouse after an action for elem and macro. For weighted, will return a string representation
-    # of the warehouse after an action and the coordinates of the boxes(this is because as the 
-    # warehouse is built from a string, the order of boxes changes depending where they are located)
-    # by keeping track of the box locations, the box weights will be applied to the appropriate box)
     def result(self, state, action):
         '''
         Return the state that results from executing the given
         action in the given state. The action must be one of
         self.actions(state).
+
+        Deals with elem, macro and weighted solutions. Will return a string representation of the 
+        warehouse after an action for elem and macro. For weighted, will return a string representation
+        of the warehouse after an action and the coordinates of the boxes(this is because as the 
+        warehouse is built from a string, the order of boxes changes depending where they are located)
+        by keeping track of the box locations, the box weights will be applied to the appropriate box)
         '''
         if self.weighted == True:
             self.warehouse.from_string(state[0])#creates a warehouse from state[0] (state[0] is a string representation of a warehouse)
@@ -406,8 +407,6 @@ class SokobanPuzzle(search.Problem):
                     self.warehouse.boxes[x] = (new_action[0]+1,new_action[1])#moves the box right one cell
                     
             return self.warehouse.__str__()
-            
-
 
     def goal_test(self, state):
         '''
@@ -455,18 +454,25 @@ class SokobanPuzzle(search.Problem):
         returns a int value which is an estimate of the puzzles distance to
         the goal state.
         '''
-        b = self.warehouse.boxes
-        t = self.warehouse.targets
-    
-        h = []
-        for i in range(0,len(t)):
-            h.append(abs(b[i][0] - t[i][0]) + abs(b[i][1] - t[i][1]))
+        print(n)
+        weights = self.box_weights
+        boxes = self.warehouse.boxes
+        targets = self.warehouse.targets
+        man_dist = []
+        for i, box in enumerate(boxes):
+        	weight_list = []
+        	for target in targets:
+        		weight_list.append( (abs(box[0]-target[0]) + abs(box[1]-target[1])) * weights[i] )
+        	man_dist.append(weight_list)
 
-        heuristic = sum(h)
+       	heuristic = 0
+       	for i in man_dist:
+       		heuristic += min(i)
+        
         return heuristic
-
-    # used to convert the initial state of the wearhosue into a list of all possible goal states.     
+  
     def convert_state_to_mutiple_goal(self, warehouse):
+        # used to convert the initial state of the wearhosue into a list of all possible goal states.     
         list_of_goal_possible_states = []
         list_of_goal_worker_coords = []
         list_of_states = []
@@ -487,9 +493,9 @@ class SokobanPuzzle(search.Problem):
             self.goal_wh.worker = list_of_goal_possible_states[i]
             list_of_states.append(self.goal_wh.__str__())
         return(list_of_states)       
-
-    # this was taken from the sokoban.py and adapted so that the correct coordinates of the taboo cells 
+       
     def from_lines(self,lines):
+        # this was taken from the sokoban.py and adapted so that the correct coordinates of the taboo cells
         first_row_brick, first_column_brick = None, None
         for row, line in enumerate(lines):
             brick_column = line.find('#')
@@ -505,11 +511,11 @@ class SokobanPuzzle(search.Problem):
         canonical_lines = [line[first_column_brick:] 
                            for line in lines[first_row_brick:] if line.find('#')>=0]
         self.extract_locations(canonical_lines)      
-    
-    # this was taken from the sokoban.py and adapted so that the correct coordinates of the taboo cells    
+        
     def extract_locations(self,lines):
+        # this was taken from the sokoban.py and adapted so that the correct coordinates of the taboo cells
         self.taboo_coords = list(sokoban.find_2D_iterator(lines, "X"))
-
+    
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -899,6 +905,7 @@ def solve_weighted_sokoban_elem(warehouse, push_costs):
     for node in path:
         if node.action is not None:
             sequence.append(node.action[0])
+    print(sequence)
     return sequence
 
 
